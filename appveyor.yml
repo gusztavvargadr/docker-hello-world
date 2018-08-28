@@ -1,0 +1,10 @@
+image: ubuntu
+
+services:
+  - docker
+
+build_script:
+  - docker build --tag gusztavvargadr/hello-world:appveyor-latest ./src
+
+test_script:
+  - docker run gusztavvargadr/hello-world:appveyor-latest
