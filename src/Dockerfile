@@ -1,3 +1,3 @@
-FROM library/hello-world:latest
+FROM hello-world:latest
 
 CMD [ "/hello" ]
