@@ -21,7 +21,7 @@ test_script:
 
 for:
 -
-  braches:
+  branches:
     only:
       - master
   deploy_script:
