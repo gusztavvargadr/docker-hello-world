@@ -1,5 +1,10 @@
 image: ubuntu
 
+branches:
+  only:
+    - master
+    - /feature.*/
+
 services:
   - docker
 
@@ -8,3 +13,6 @@ build_script:
 
 test_script:
   - docker run gusztavvargadr/hello-world:appveyor-latest
+
+deploy_script:
+  - docker push gusztavvargadr/hello-world:appveyor-latest
