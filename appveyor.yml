@@ -5,6 +5,12 @@ branches:
     - master
     - /feature.*/
 
+environment:
+  DOCKER_LOGIN_USERNAME:
+    secure: YDysqo3XiO4+iVK7jwj2RQ==
+  DOCKER_LOGIN_PASSWORD:
+    secure: s7mFOV45dv8zk6AjwAkjLy3yLHCTmFvuT+A7r3xGaFY=
+
 services:
   - docker
 
@@ -15,4 +21,14 @@ test_script:
   - docker run gusztavvargadr/hello-world:appveyor-latest
 
 deploy_script:
+  - docker login --username "$env:DOCKER_LOGIN_USERNAME" --password "$env:DOCKER_LOGIN_PASSWORD"
   - docker push gusztavvargadr/hello-world:appveyor-latest
+
+# for:
+# -
+#   braches:
+#     only:
+#       - master
+#   deploy_script:
+#     - docker login --username "$env:DOCKER_LOGIN_USERNAME" --password "$env:DOCKER_LOGIN_PASSWORD"
+#     - docker push gusztavvargadr/hello-world:appveyor-latest
