@@ -1,0 +1,29 @@
+image: ubuntu
+
+branches:
+  only:
+    - master
+    - /feature.*/
+
+environment:
+  DOCKER_LOGIN_USERNAME: gusztavvargadr
+  DOCKER_LOGIN_PASSWORD:
+    secure: s7mFOV45dv8zk6AjwAkjLy3yLHCTmFvuT+A7r3xGaFY=
+
+services:
+  - docker
+
+build_script:
+  - docker build --tag gusztavvargadr/hello-world:appveyor-latest ./src
+
+test_script:
+  - docker run gusztavvargadr/hello-world:appveyor-latest
+
+for:
+-
+  branches:
+    only:
+      - master
+  deploy_script:
+    - ps: docker login --username "$env:DOCKER_LOGIN_USERNAME" --password "$env:DOCKER_LOGIN_PASSWORD"
+    - docker push gusztavvargadr/hello-world:appveyor-latest
