@@ -1,3 +1,3 @@
 # docker-hello-world
 
-[![Docker Build Status](https://img.shields.io/docker/build/gusztavvargadr/hello-world.svg)](https://hub.docker.com/r/gusztavvargadr/hello-world/builds/)
+[![Azure Pipelines CI Build Status](https://dev.azure.com/gusztavvargadr/docker/_apis/build/status/hello-world-ci?branchName=master)](https://dev.azure.com/gusztavvargadr/docker/_build/latest?definitionId=3&branchName=master)
