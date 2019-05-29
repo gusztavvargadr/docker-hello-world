@@ -1,3 +1,3 @@
-FROM hello-world:latest
+FROM library/alpine:3.9.4
 
-CMD [ "/hello" ]
+CMD [ "echo", "Hello World!" ]
