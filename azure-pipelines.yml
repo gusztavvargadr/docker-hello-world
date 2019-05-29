@@ -6,8 +6,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- script: docker build -t build src
+  displayName: 'Docker Build'
 
-- script: docker version
-  displayName: 'Docker Diagnostics'
+- script: docker run --rm build
+  displayName: 'Docker Run'
