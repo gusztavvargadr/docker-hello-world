@@ -2,8 +2,10 @@ trigger:
 - master
 - feature*/*
 
+pr: none
+
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-16.04'
 
 steps:
 - script: docker build -t build src
