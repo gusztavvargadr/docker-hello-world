@@ -16,7 +16,7 @@ variables:
 - name: registry-password
   value: $(docker-registry-password)
 - name: image-name
-  value: '$(docker-username)/hello-world'
+  value: '$(docker-registry-username)/hello-world'
 - name: image-tag
   value: 'azp-$(Build.BuildNumber)'
 - name: image-ref
