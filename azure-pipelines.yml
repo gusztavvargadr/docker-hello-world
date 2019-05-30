@@ -8,20 +8,20 @@ pool:
   vmImage: 'ubuntu-16.04'
 
 variables:
-  registry: $(docker-registry)
-  username: $(docker-username)
-  password: $(docker-password)
-  imageName: $(docker-username)/hello-world
-  imageTag: 'latest'
+- group: docker-credentials
+- name: docker-image-name
+  value: '$(docker-username)/hello-world'
+- name: docker-image-tag
+  value: 'latest'
 
 steps:
 - script: set
   displayName: 'Variable Diagnostics'
 
-- script: docker login --username $(username) --password $DOCKER_PASSWORD $(registry)
+- script: docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD $DOCKER_REGISTRY
   displayName: 'Init'
   env:
-    DOCKER_PASSWORD: $(password)
+    DOCKER_PASSWORD: $(docker-password)
 
 - script: docker build --tag build src
   displayName: 'Build'
