@@ -15,6 +15,9 @@ variables:
   imageTag: 'latest'
 
 steps:
+- script: set
+  displayName: 'Variable Diagnostics'
+
 - script: docker login --username $(username) --password $DOCKER_PASSWORD $(registry)
   displayName: 'Init'
   env:
