@@ -1,6 +1,7 @@
 trigger:
 - master
 - feature*/*
+- refs/tags/*
 
 pr: none
 
@@ -10,11 +11,7 @@ pool:
 variables:
 - group: docker-registry-dockerhub
 - name: docker-image-name
-  value: '$(docker-registry-username)/hello-world'
-- name: docker-image-tag
-  value: 'azp-$(Build.BuildNumber)'
-- name: docker-image-ref
-  value: '$(docker-registry-address)$(docker-image-name):$(docker-image-tag)'
+  value: '$(docker-registry-address)$(docker-registry-username)/hello-world'
 
 steps:
 - script: docker login --username $(docker-registry-username) --password $DOCKER_REGISTRY_PASSWORD $(docker-registry-address)
@@ -28,8 +25,17 @@ steps:
 - script: docker run build
   displayName: 'Test'
 
-- script: docker tag build $(docker-image-ref)
-  displayName: 'Package'
+- script: |
+    docker tag build $(docker-image-name):azp-$(Build.BuildNumber)
+    docker push $(docker-image-name):azp-$(Build.BuildNumber)
+  displayName: 'Publish for build number'
 
-- script: docker push $(docker-image-ref)
-  displayName: 'Publish'
+- script: |
+    docker tag build $(docker-image-name):branch-$(Build.SourceBranchName)-latest
+    docker push $(docker-image-name):branch-$(Build.SourceBranchName)-latest
+  displayName: 'Publish for branch latest'
+
+- script: |
+    docker tag build $(docker-image-name):ci-latest
+    docker push $(docker-image-name):ci-latest
+  displayName: 'Publish for CI latest'
