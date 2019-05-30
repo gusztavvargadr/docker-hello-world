@@ -8,20 +8,25 @@ pool:
   vmImage: 'ubuntu-16.04'
 
 variables:
-- group: docker-credentials
-- name: docker-image-name
+- group: docker-registry-dockerhub
+- name: registry-address
+  value: $(docker-registry-address)
+- name: registry-username
+  value: $(docker-registry-username)
+- name: registry-password
+  value: $(docker-registry-password)
+- name: image-name
   value: '$(docker-username)/hello-world'
-- name: docker-image-tag
+- name: image-tag
   value: 'azp-$(Build.BuildNumber)'
+- name: image-ref
+  value: '$(registry-address)$(image-name):$(image-tag)'
 
 steps:
-- script: set
-  displayName: 'Variable Diagnostics'
-
-- script: docker login --username $(docker-username) --password $DOCKER_PASSWORD $(docker-registry)
+- script: docker login --username $(registry-username) --password $REGISTRY_PASSWORD $(registry-address)
   displayName: 'Init'
   env:
-    DOCKER_PASSWORD: $(docker-password)
+    REGISTRY_PASSWORD: $(registry-password)
 
 - script: docker build --tag build src
   displayName: 'Build'
@@ -29,8 +34,8 @@ steps:
 - script: docker run --rm build
   displayName: 'Test'
 
-- script: docker tag build $(docker-registry)$(docker-image-name):$(docker-image-tag)
+- script: docker tag build $(image-ref)
   displayName: 'Package'
 
-- script: docker push $(docker-registry)$(docker-image-name):$(docker-image-tag)
+- script: docker push $(image-ref)
   displayName: 'Publish'
