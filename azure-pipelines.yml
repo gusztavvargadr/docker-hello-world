@@ -26,16 +26,17 @@ steps:
   displayName: 'Test'
 
 - script: |
-    docker tag build $(docker-image-name):azp-$(Build.BuildNumber)
-    docker push $(docker-image-name):azp-$(Build.BuildNumber)
-  displayName: 'Publish for build number'
+    docker tag build $(docker-image-name):source-version-$(Build.SourceVersion)
+    docker push $(docker-image-name):source-version-$(Build.SourceVersion)
+
+    docker tag build $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
+    docker push $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
+  displayName: 'Publish with source tags'
 
 - script: |
-    docker tag build $(docker-image-name):branch-$(Build.SourceBranchName)-latest
-    docker push $(docker-image-name):branch-$(Build.SourceBranchName)-latest
-  displayName: 'Publish for branch latest'
+    docker tag build $(docker-image-name):ci-azp-$(Build.BuildNumber)
+    docker push $(docker-image-name):ci-azp-$(Build.BuildNumber)
 
-- script: |
     docker tag build $(docker-image-name):ci-latest
     docker push $(docker-image-name):ci-latest
-  displayName: 'Publish for CI latest'
+  displayName: 'Publish with CI tags'
