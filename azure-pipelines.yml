@@ -15,6 +15,8 @@ variables:
   value: $(docker-registry-username)
 - name: registry-password
   value: $(docker-registry-password)
+- name: registry-secret
+  value: $(docker-registry-secret)
 - name: image-name
   value: '$(docker-registry-username)/hello-world'
 - name: image-tag
@@ -23,6 +25,11 @@ variables:
   value: '$(registry-address)$(image-name):$(image-tag)'
 
 steps:
+- script: set
+  displayName: 'Variables Diagnostics'
+  env:
+    REGISTRY_SECRET: $(registry-secret)
+
 - script: docker login --username $(registry-username) --password $REGISTRY_PASSWORD $(registry-address)
   displayName: 'Init'
   env:
