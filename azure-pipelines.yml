@@ -1,19 +1,42 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - master
+- feature*/*
+- refs/tags/*
+
+pr: none
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-16.04'
+
+variables:
+- group: docker-registry-dockerhub
+- name: docker-image-name
+  value: '$(docker-registry-address)$(docker-registry-username)/hello-world'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- script: docker login --username $(docker-registry-username) --password $DOCKER_REGISTRY_PASSWORD $(docker-registry-address)
+  displayName: 'Init'
+  env:
+    DOCKER_REGISTRY_PASSWORD: $(docker-registry-password)
+
+- script: docker build --tag build src
+  displayName: 'Build'
+
+- script: docker run build
+  displayName: 'Test'
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    docker tag build $(docker-image-name):source-version-$(Build.SourceVersion)
+    docker push $(docker-image-name):source-version-$(Build.SourceVersion)
+
+    docker tag build $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
+    docker push $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
+  displayName: 'Publish with source tags'
+
+- script: |
+    docker tag build $(docker-image-name):ci-azp-$(Build.BuildNumber)
+    docker push $(docker-image-name):ci-azp-$(Build.BuildNumber)
+
+    docker tag build $(docker-image-name):ci-latest
+    docker push $(docker-image-name):ci-latest
+  displayName: 'Publish with CI tags'
