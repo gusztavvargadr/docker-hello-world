@@ -18,7 +18,7 @@ steps:
 - script: set
   displayName: 'Variable Diagnostics'
 
-- script: docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD $DOCKER_REGISTRY
+- script: docker login --username $(docker-username) --password $DOCKER_PASSWORD $(docker-registry)
   displayName: 'Init'
   env:
     DOCKER_PASSWORD: $(docker-password)
@@ -29,8 +29,8 @@ steps:
 - script: docker run --rm build
   displayName: 'Test'
 
-- script: docker tag build $(registry)$(imageName):$(imageTag)
+- script: docker tag build $(docker-registry)$(docker-image-name):$(docker-image-tag)
   displayName: 'Package'
 
-- script: docker push $(registry)$(imageName):$(imageTag)
+- script: docker push $(docker-registry)$(docker-image-name):$(docker-image-tag)
   displayName: 'Publish'
