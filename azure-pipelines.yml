@@ -12,7 +12,7 @@ variables:
 - name: docker-image-name
   value: '$(docker-username)/hello-world'
 - name: docker-image-tag
-  value: 'latest'
+  value: 'azp-$(Build.BuildNumber)'
 
 steps:
 - script: set
