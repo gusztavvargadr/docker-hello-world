@@ -7,9 +7,27 @@ pr: none
 pool:
   vmImage: 'ubuntu-16.04'
 
+variables:
+  registry: $(docker-registry)
+  username: $(docker-username)
+  password: $(docker-password)
+  imageName: $(docker-username)/hello-world
+  imageTag: 'latest'
+
 steps:
-- script: docker build -t build src
-  displayName: 'Docker Build'
+- script: docker login --username $(username) --password $DOCKER_PASSWORD $(registry)
+  displayName: 'Init'
+  env:
+    DOCKER_PASSWORD: $(password)
+
+- script: docker build --tag build src
+  displayName: 'Build'
 
 - script: docker run --rm build
-  displayName: 'Docker Run'
+  displayName: 'Test'
+
+- script: docker tag build $(registry)$(imageName):$(imageTag)
+  displayName: 'Package'
+
+- script: docker push $(registry)$(imageName):$(imageTag)
+  displayName: 'Publish'
