@@ -23,7 +23,7 @@ steps:
     dotnet --version
     dotnet tool install Cake.Tool --version 0.33.0 --tool-path .
     ls
-    dotnet-cake
+    ./dotnet-cake
     dotnet cake
   displayName: 'Install Cake'
 
