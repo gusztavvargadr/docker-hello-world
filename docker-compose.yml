@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  gitversion:
+    image: gittools/gitversion-dotnetcore:linux-4.0.1
+    volumes:
+      - .:/data
+    command:
+      - /data
+      - /showvariable
+      - SemVer
+  app:
+    image: ${APP_DOCKER_IMAGE}
