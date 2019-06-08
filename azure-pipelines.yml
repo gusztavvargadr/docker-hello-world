@@ -27,6 +27,7 @@ steps:
     arguments: 'install -g Cake.Tool'
 
 - script: |
+    export PATH="$HOME/.dotnet/tools:$PATH"
     dotnet tool list -g
     env
   displayName: 'List Tools'
@@ -36,7 +37,7 @@ steps:
   displayName: 'Run Cake #1'
 
 - script: |
-    dotnet-cake
+    dotnet cake
   displayName: 'Run Cake #2'
 
 - script: docker build --tag build src
