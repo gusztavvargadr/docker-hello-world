@@ -27,8 +27,10 @@ steps:
     arguments: 'install -g Cake.Tool'
 
 - script: |
+    dotnet --version
     export PATH="$HOME/.dotnet/tools:$PATH"
     dotnet tool list -g
+    ls .dotnet/tools
     env
   displayName: 'List Tools'
 
