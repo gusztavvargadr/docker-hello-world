@@ -21,7 +21,7 @@ steps:
 
 - script: |
     dotnet --version
-    dotnet tool install Cake.Tool --verion 0.33.0 --tool-path .
+    dotnet tool install Cake.Tool --version 0.33.0 --tool-path .
     ls
     dotnet-cake
     dotnet cake
