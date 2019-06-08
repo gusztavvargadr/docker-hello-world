@@ -19,9 +19,12 @@ steps:
   env:
     DOCKER_REGISTRY_PASSWORD: $(docker-registry-password)
 
-- script: |
-    dotnet tool install --global Cake.Tool --version 0.33.0
+- task: DotNetCoreCLI@2
   displayName: 'Install Cake'
+  inputs:
+    command: custom
+    custom: tool
+    arguments: 'install -g Cake.Tool'
 
 - script: |
     dotnet cake
