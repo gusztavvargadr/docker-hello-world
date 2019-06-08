@@ -15,24 +15,22 @@ variables:
 
 steps:
 - script: docker login --username $(docker-registry-username) --password $DOCKER_REGISTRY_PASSWORD $(docker-registry-address)
-  displayName: 'Init'
+  displayName: 'Init - Docker Login'
   env:
     DOCKER_REGISTRY_PASSWORD: $(docker-registry-password)
 
 - script: |
-    dotnet --version
     dotnet tool install Cake.Tool --version 0.33.0 --tool-path .
     ls
     ./dotnet-cake
-    dotnet cake
-  displayName: 'Install Cake'
+  displayName: 'Init - .NET Tool Install Cake'
 
 - script: |
-    dotnet-cake
+    ./dotnet-cake
   displayName: 'Run Cake #1'
 
 - script: |
-    dotnet cake
+    ./dotnet-cake
   displayName: 'Run Cake #2'
 
 - script: docker build --tag build src
