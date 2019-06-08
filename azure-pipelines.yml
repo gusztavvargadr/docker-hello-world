@@ -30,7 +30,8 @@ steps:
     dotnet --version
     export PATH="$HOME/.dotnet/tools:$PATH"
     dotnet tool list -g
-    ls .dotnet/tools
+    ls $HOME/.dotnet/tools
+    whoami
     env
   displayName: 'List Tools'
 
