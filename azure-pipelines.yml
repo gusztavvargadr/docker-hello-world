@@ -28,6 +28,7 @@ steps:
 
 - script: |
     dotnet tool list -g
+    env
   displayName: 'List Tools'
 
 - script: |
