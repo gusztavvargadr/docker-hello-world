@@ -27,11 +27,15 @@ steps:
     arguments: 'install -g Cake.Tool'
 
 - script: |
-    dotnet cake
+    dotnet tool list -g
+  displayName: 'List Tools'
+
+- script: |
+    dotnet-cake
   displayName: 'Run Cake #1'
 
 - script: |
-    dotnet cake
+    dotnet-cake
   displayName: 'Run Cake #2'
 
 - script: docker build --tag build src
