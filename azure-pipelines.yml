@@ -14,50 +14,15 @@ variables:
   value: '$(docker-registry-address)$(docker-registry-username)/hello-world'
 
 steps:
+- script: |
+    dotnet tool install Cake.Tool --version 0.33.0
+  displayName: 'Init - .NET Tool Install Cake'
+
 - script: docker login --username $(docker-registry-username) --password $DOCKER_REGISTRY_PASSWORD $(docker-registry-address)
   displayName: 'Init - Docker Login'
   env:
     DOCKER_REGISTRY_PASSWORD: $(docker-registry-password)
 
 - script: |
-    dotnet tool install Cake.Tool --version 0.33.0 --tool-path .
-  displayName: 'Init - .NET Tool Install Cake'
-
-- script: |
-    ./dotnet-cake
-  displayName: 'Run Cake #1'
-
-- script: |
-    ./dotnet-cake
-  displayName: 'Run Cake #2'
-
-- script: docker build --tag build src
+    ~/.dotnet/tools/dotnet-cake build.cake --target=publish --app-version=ci-azp-$(Build.BuildNumber)
   displayName: 'Build'
-
-- script: docker run build
-  displayName: 'Test'
-
-# - script: |
-#     docker tag build $(docker-image-name):source-version-$(Build.SourceVersion)
-#     docker push $(docker-image-name):source-version-$(Build.SourceVersion)
-
-#     docker tag build $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
-#     docker push $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
-#   displayName: 'Publish with source tags'
-
-- script: |
-    docker tag build $(docker-image-name):ci-azp-$(Build.BuildNumber)
-    docker push $(docker-image-name):ci-azp-$(Build.BuildNumber)
-
-    docker tag build $(docker-image-name):ci-latest
-    docker push $(docker-image-name):ci-latest
-  displayName: 'Publish for CI build'
-
-- script: |
-    docker tag build $(docker-image-name):$(Build.SourceBranchName)
-    docker push $(docker-image-name):$(Build.SourceBranchName)
-
-    docker tag build $(docker-image-name):latest
-    docker push $(docker-image-name):latest
-  displayName: 'Publish for release'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
