@@ -3,19 +3,20 @@
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 
-var sourceDirectory = Argument("sourceDirectory", "src");
-
 var dockerRegistry = "";
 var dockerRepository = "gusztavvargadr/hello-world";
+
+var version = string.Empty;
 
 Task("Version")
   .Does(() => {
     var settings = new DockerComposeRunSettings {
-      Rm = true
     };
-    var service = $"gitversion";
+    var service = "gitversion";
 
     DockerComposeRun(settings, service);
+
+    version = "latest";
   });
 
 Task("Restore")
@@ -26,34 +27,47 @@ Task("Restore")
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var settings = new DockerImageBuildSettings {
-      Tag = new [] { $"{dockerRepository}:build" }
+    var settings = new DockerComposeBuildSettings {
     };
-    var path = sourceDirectory;
+    var services = new [] { "app" };
 
-    DockerBuild(settings, path);
+    DockerComposeBuild(settings, services);
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var settings = new DockerContainerRunSettings {
-      Rm = true
+    var settings = new DockerComposeRunSettings {
     };
-    var image = $"{dockerRepository}:build";
-    var command = string.Empty;
+    var service = "app";
 
-    DockerRunWithoutResult(settings, image, command);
+    DockerComposeRun(settings, service);
   });
 
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
+    DockerTag($"{dockerRepository}:build", $"{dockerRepository}:{version}");
   });
 
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
+  });
+
+Task("Clean")
+  .IsDependentOn("Version")
+  .Does(() => {
+    DockerRemove(
+      new DockerImageRemoveSettings(),
+      new [] { $"{dockerRepository}:{version}" }
+    );
+
+    var settings = new DockerComposeDownSettings {
+      Rmi = "all"
+    };
+
+    DockerComposeDown(settings);
   });
 
 Task("Default")

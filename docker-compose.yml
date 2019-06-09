@@ -10,4 +10,5 @@ services:
       - /showvariable
       - SemVer
   app:
-    image: ${APP_DOCKER_IMAGE}
+    build: src
+    image: gusztavvargadr/hello-world:build

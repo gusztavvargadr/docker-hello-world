@@ -15,15 +15,15 @@ machines:
     provisioners:
       shell-init-dotnet-sdk:
         inline: |
-          apt-get -y update
-          apt-get -y install apt-transport-https
+          apt-get --yes update
+          apt-get --yes install apt-transport-https
 
           cd /tmp
-          wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
-          dpkg -i packages-microsoft-prod.deb
+          wget --quiet https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
+          dpkg --install packages-microsoft-prod.deb
 
-          apt-get -y update
-          apt-get -y install dotnet-sdk-2.2
+          apt-get --yes update
+          apt-get --yes install dotnet-sdk-2.2
       shell-init-dotnet-tool-cake:
         inline: |
           su -c "dotnet tool install --global Cake.Tool --version 0.33.0" vagrant
