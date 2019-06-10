@@ -5,24 +5,34 @@ var configuration = Argument("configuration", "Release");
 
 var version = Argument("app-version", string.Empty);
 
-var dockerRegistry = "";
 var dockerRepository = "gusztavvargadr/hello-world";
 
 Task("Version")
-  .WithCriteria(() => string.IsNullOrEmpty(version))
-  .Does(() => {
-    var settings = new DockerComposeRunSettings {
-    };
-    var service = "gitversion";
+  .Does(context => {
+    try {
+      if (!string.IsNullOrEmpty(version)) {
+        return;
+      }
 
-    DockerComposeRun(settings, service);
+      var settings = new DockerComposeUpSettings {
+      };
+      var service = "gitversion";
 
-    version = "gitversion";
+      DockerComposeUp(settings, service);
+
+      var logs = DockerComposeLogs(context, new DockerComposeLogsSettings { NoColor = true }, service);
+      version = logs.Split(Environment.NewLine).Last().Split('|').Last().Trim();
+    } finally {
+      Information(version);
+      Environment.SetEnvironmentVariable("APP_IMAGE_TAG", version);
+    }
   });
 
 Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
+    Environment.SetEnvironmentVariable("APP_IMAGE_TAG", version);
+
     var settings = new DockerComposePullSettings {
       IgnorePullFailures = true
     };
@@ -54,7 +64,6 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    DockerTag($"{dockerRepository}:ci", $"{dockerRepository}:{version}");
   });
 
 Task("Publish")
@@ -63,18 +72,12 @@ Task("Publish")
     var settings = new DockerImagePushSettings {
     };
     
-    DockerPush(settings, $"{dockerRepository}:ci");
     DockerPush(settings, $"{dockerRepository}:{version}");
   });
 
 Task("Clean")
   .IsDependentOn("Version")
   .Does(() => {
-    DockerRemove(
-      new DockerImageRemoveSettings { Force = true },
-      new [] { $"{dockerRepository}:{version}" }
-    );
-
     var settings = new DockerComposeDownSettings {
       Rmi = "all"
     };
@@ -84,5 +87,18 @@ Task("Clean")
 
 Task("Default")
   .IsDependentOn("Package");
+
+private string DockerComposeLogs(ICakeContext context, DockerComposeLogsSettings settings, string service) {
+  var runner = new GenericDockerComposeRunner<DockerComposeLogsSettings>(
+    context.FileSystem,
+    context.Environment,
+    context.ProcessRunner,
+    context.Tools
+  );
+
+  var output = runner.RunWithResult<string>("logs", settings, (processOutput) => processOutput.ToArray(), service);
+
+  return string.Join(Environment.NewLine, output);
+}
 
 RunTarget(target);

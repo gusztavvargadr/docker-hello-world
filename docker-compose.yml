@@ -11,4 +11,4 @@ services:
       - SemVer
   app:
     build: src
-    image: gusztavvargadr/hello-world:ci
+    image: gusztavvargadr/hello-world:${APP_IMAGE_TAG:-latest}
