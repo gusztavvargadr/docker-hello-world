@@ -26,3 +26,9 @@ steps:
 - script: |
     ~/.dotnet/tools/dotnet-cake build.cake --target=publish
   displayName: 'Build'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: .
+    archiveType: zip
+  displayName: 'Artifacts - Archive'
