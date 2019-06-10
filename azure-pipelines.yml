@@ -28,7 +28,15 @@ steps:
   displayName: 'Build'
 
 - task: ArchiveFiles@2
+  displayName: 'Artifacts - Archive'
   inputs:
     rootFolderOrFile: .
     archiveType: zip
-  displayName: 'Artifacts - Archive'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Artifacts - Publish'
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'drop'
