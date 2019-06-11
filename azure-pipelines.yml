@@ -14,23 +14,23 @@ variables:
 steps:
 - script: |
     dotnet tool install Cake.Tool --global --version 0.33.0
-  displayName: 'Init - .NET Tool Install Cake'
+  displayName: Init - .NET Tool Install Cake
 
 - script: |
     env
     docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-  displayName: 'Init - Docker Login'
+  displayName: Init - Docker Login
   env:
-    DOCKER_LOGIN_USERNAME: ${docker-registry-username}
-    DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-    DOCKER_LOGIN_SERVER: ${docker-registry-server}
+    DOCKER_LOGIN_USERNAME: '${docker-registry-username}'
+    DOCKER_LOGIN_PASSWORD: '$(docker-registry-password)'
+    DOCKER_LOGIN_SERVER: '${docker-registry-server}'
 
 - script: |
     ~/.dotnet/tools/dotnet-cake build.cake --target=publish
-  displayName: 'Build'
+  displayName: Build
 
 - task: ArchiveFiles@2
-  displayName: 'Artifacts - Archive'
+  displayName: Artifacts - Archive
   inputs:
     rootFolderOrFile: .
     includeRootFolder: false
@@ -38,7 +38,7 @@ steps:
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
 
 - task: PublishBuildArtifacts@1
-  displayName: 'Artifacts - Publish'
+  displayName: Artifacts - Publish
   inputs:
     pathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-    artifactName: 'ci'
+    artifactName: ci
