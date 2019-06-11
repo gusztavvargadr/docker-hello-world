@@ -63,7 +63,7 @@ jobs:
       env
     displayName: Diagnostics
 
-- deployment: Job2
+- deployment: Job3
 
   dependsOn: Job2
 
