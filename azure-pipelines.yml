@@ -39,17 +39,11 @@ jobs:
       archiveType: zip
       archiveFile: '$(Build.ArtifactStagingDirectory)/repo/$(Build.BuildId).zip'
 
-  - task: PublishBuildArtifacts@1
-    displayName: Artifacts - Repo - Publish (Build)
-    inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)/repo'
-      artifactName: repo-build
-
   - task: PublishPipelineArtifact@0
     displayName: Artifacts - Repo - Publish (Pipeline)
     inputs:
       targetPath: '$(Build.ArtifactStagingDirectory)/repo'
-      artifactName: repo-pipeline
+      artifactName: repo
 
 - job: Job2
 
@@ -63,7 +57,7 @@ jobs:
 
   steps:
   - script: |
-      ls -Ral
+      ls -Ral ..
       docker version
       dotnet --version
       env
@@ -84,7 +78,7 @@ jobs:
         steps:
         - checkout: self
         - script: |
-            ls -Ral
+            ls -Ral ..
             docker version
             dotnet --version
             env
