@@ -6,7 +6,7 @@ trigger:
 pr: none
 
 jobs:
-- job: Build
+- job: Job1
 
   pool:
     vmImage: 'ubuntu-16.04'
@@ -45,9 +45,9 @@ jobs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/repo'
       artifactName: repo
 
-- job: Deploy
+- job: Job2
 
-  dependsOn: Build
+  dependsOn: Job1
 
   pool:
     vmImage: 'ubuntu-16.04'
@@ -62,3 +62,20 @@ jobs:
       dotnet --version
       env
     displayName: Diagnostics
+
+- deployment: Job2
+
+  dependsOn: Job2
+
+  pool:
+    vmImage: 'ubuntu-16.04'
+
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - script: |
+            ls -Ral
+            docker version
+            dotnet --version
+            env
