@@ -29,15 +29,15 @@ steps:
   displayName: Build
 
 - task: ArchiveFiles@2
-  displayName: Artifacts - Archive
+  displayName: Artifacts - Repo - Archive
   inputs:
     rootFolderOrFile: .
     includeRootFolder: false
     archiveType: zip
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/repo/$(Build.BuildId).zip'
 
 - task: PublishBuildArtifacts@1
-  displayName: Artifacts - Publish
+  displayName: Artifacts - Repo - Publish
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: ci
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/repo'
+    artifactName: repo
