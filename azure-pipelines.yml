@@ -43,13 +43,13 @@ jobs:
     displayName: Artifacts - Repo - Publish (Build)
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/repo'
-      artifactName: repo
+      artifactName: repo-build
 
   - task: PublishPipelineArtifact@0
     displayName: Artifacts - Repo - Publish (Pipeline)
     inputs:
       targetPath: '$(Build.ArtifactStagingDirectory)/repo'
-      artifactName: repo
+      artifactName: repo-pipeline
 
 - job: Job2
 
