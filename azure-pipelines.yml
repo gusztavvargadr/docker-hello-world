@@ -17,7 +17,6 @@ steps:
   displayName: Init - .NET Tool Install Cake
 
 - script: |
-    env
     docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
   displayName: Init - Docker Login
   env:
@@ -40,5 +39,5 @@ steps:
 - task: PublishBuildArtifacts@1
   displayName: Artifacts - Publish
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: ci
