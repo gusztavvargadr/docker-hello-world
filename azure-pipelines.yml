@@ -6,8 +6,8 @@ trigger:
 pr: none
 
 stages:
-- stage: ci
-  displayName: CI
+- stage: build
+  displayName: Build
   variables:
   - group: docker-registry-dockerhub
 
@@ -32,13 +32,13 @@ stages:
 
     - script: |
         ~/.dotnet/tools/dotnet-cake build.cake --target=publish
-      displayName: Build - Publish
+      displayName: Publish
 
     - task: ArchiveFiles@2
       displayName: Artifacts - Archive - Source
       inputs:
         rootFolderOrFile: $(Build.SourcesDirectory)
-        includeRootFolder: true
+        includeRootFolder: false
         archiveType: zip
         archiveFile: '$(Build.ArtifactStagingDirectory)/source.zip'
 
@@ -46,13 +46,13 @@ stages:
       displayName: Artifacts - Publish
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)'
-        artifactName: ci-publish
+        artifactName: build-publish
 
-- stage: cd
-  displayName: CD
+- stage: deploy
+  displayName: Deploy
   variables:
   - group: docker-registry-dockerhub
-  dependsOn: ci
+  dependsOn: build
 
   jobs:
   - deployment: publish
