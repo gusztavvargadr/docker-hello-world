@@ -12,7 +12,7 @@ stages:
   - group: docker-registry-dockerhub
 
   jobs:
-  - job: Job1
+  - job: ci-default
     pool:
       vmImage: 'ubuntu-16.04'
 
@@ -32,19 +32,20 @@ stages:
     - script: |
         ~/.dotnet/tools/dotnet-cake build.cake --target=publish
       displayName: Build
+
     - task: ArchiveFiles@2
-      displayName: Artifacts - Repo - Archive
+      displayName: Artifacts - Archive - Source
       inputs:
-        rootFolderOrFile: .
-        includeRootFolder: false
+        rootFolderOrFile: $(Build.SourcesDirectory)
+        includeRootFolder: true
         archiveType: zip
-        archiveFile: '$(Build.ArtifactStagingDirectory)/ci-repo/$(Build.BuildId).zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/source.zip'
 
     - task: PublishPipelineArtifact@0
-      displayName: Artifacts - Repo - Publish (Pipeline)
+      displayName: Artifacts - Publish
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/ci-repo'
-        artifactName: ci-repo
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifactName: ci-default
 
 - stage: cd
   displayName: CD
@@ -53,7 +54,7 @@ stages:
   dependsOn: ci
 
   jobs:
-  - deployment: Job3
+  - deployment: cd-default
     pool:
       vmImage: 'ubuntu-16.04'
     environment: Default
@@ -62,10 +63,23 @@ stages:
         deploy:
 
           steps:
+          - script: |
+              ls -Ral ..
+
           - checkout: self
 
           - script: |
-              ls -Ral ..
-              docker version
-              dotnet --version
-              env
+              dotnet tool install Cake.Tool --global --version 0.33.0
+            displayName: Init - .NET Tool Install Cake
+
+          - script: |
+              docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+            displayName: Init - Docker Login
+            env:
+              DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+              DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+              DOCKER_LOGIN_SERVER: $(docker-registry-server)
+
+          - script: |
+              ~/.dotnet/tools/dotnet-cake build.cake --target=restore
+            displayName: Build
