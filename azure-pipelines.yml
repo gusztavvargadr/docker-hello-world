@@ -40,9 +40,15 @@ jobs:
       archiveFile: '$(Build.ArtifactStagingDirectory)/repo/$(Build.BuildId).zip'
 
   - task: PublishBuildArtifacts@1
-    displayName: Artifacts - Repo - Publish
+    displayName: Artifacts - Repo - Publish (Build)
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/repo'
+      artifactName: repo
+
+  - task: PublishPipelineArtifact@0
+    displayName: Artifacts - Repo - Publish (Pipeline)
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/repo'
       artifactName: repo
 
 - job: Job2
