@@ -5,39 +5,60 @@ trigger:
 
 pr: none
 
-pool:
-  vmImage: 'ubuntu-16.04'
+jobs:
+- job: Build
 
-variables:
-- group: docker-registry-dockerhub
+  pool:
+    vmImage: 'ubuntu-16.04'
 
-steps:
-- script: |
-    dotnet tool install Cake.Tool --global --version 0.33.0
-  displayName: Init - .NET Tool Install Cake
+  variables:
+  - group: docker-registry-dockerhub
 
-- script: |
-    docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-  displayName: Init - Docker Login
-  env:
-    DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-    DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-    DOCKER_LOGIN_SERVER: $(docker-registry-server)
+  steps:
+  - script: |
+      dotnet tool install Cake.Tool --global --version 0.33.0
+    displayName: Init - .NET Tool Install Cake
 
-- script: |
-    ~/.dotnet/tools/dotnet-cake build.cake --target=publish
-  displayName: Build
+  - script: |
+      docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+    displayName: Init - Docker Login
+    env:
+      DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+      DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+      DOCKER_LOGIN_SERVER: $(docker-registry-server)
 
-- task: ArchiveFiles@2
-  displayName: Artifacts - Repo - Archive
-  inputs:
-    rootFolderOrFile: .
-    includeRootFolder: false
-    archiveType: zip
-    archiveFile: '$(Build.ArtifactStagingDirectory)/repo/$(Build.BuildId).zip'
+  - script: |
+      ~/.dotnet/tools/dotnet-cake build.cake --target=publish
+    displayName: Build
 
-- task: PublishBuildArtifacts@1
-  displayName: Artifacts - Repo - Publish
-  inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/repo'
-    artifactName: repo
+  - task: ArchiveFiles@2
+    displayName: Artifacts - Repo - Archive
+    inputs:
+      rootFolderOrFile: .
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: '$(Build.ArtifactStagingDirectory)/repo/$(Build.BuildId).zip'
+
+  - task: PublishBuildArtifacts@1
+    displayName: Artifacts - Repo - Publish
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/repo'
+      artifactName: repo
+
+- job: Deploy
+
+  dependsOn: Build
+
+  pool:
+    vmImage: 'ubuntu-16.04'
+
+  variables:
+  - group: docker-registry-dockerhub
+
+  steps:
+  - script: |
+      ls -Ral
+      docker version
+      dotnet --version
+      env
+    displayName: Diagnostics
