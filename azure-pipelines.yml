@@ -5,80 +5,60 @@ trigger:
 
 pr: none
 
-jobs:
-- job: Job1
-
-  pool:
-    vmImage: 'ubuntu-16.04'
-
+stages:
+- stage: ci
+  displayName: CI
   variables:
   - group: docker-registry-dockerhub
+  jobs:
+  - job: Job1
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+    - script: |
+        dotnet tool install Cake.Tool --global --version 0.33.0
+      displayName: Init - .NET Tool Install Cake
+    - script: |
+        docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+      displayName: Init - Docker Login
+      env:
+        DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+        DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+        DOCKER_LOGIN_SERVER: $(docker-registry-server)
+    - script: |
+        ~/.dotnet/tools/dotnet-cake build.cake --target=publish
+      displayName: Build
+    - task: ArchiveFiles@2
+      displayName: Artifacts - Repo - Archive
+      inputs:
+        rootFolderOrFile: .
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: '$(Build.ArtifactStagingDirectory)/ci-repo/$(Build.BuildId).zip'
+    - task: PublishPipelineArtifact@0
+      displayName: Artifacts - Repo - Publish (Pipeline)
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/ci-repo'
+        artifactName: ci-repo
 
-  steps:
-  - script: |
-      dotnet tool install Cake.Tool --global --version 0.33.0
-    displayName: Init - .NET Tool Install Cake
-
-  - script: |
-      docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-    displayName: Init - Docker Login
-    env:
-      DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-      DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-      DOCKER_LOGIN_SERVER: $(docker-registry-server)
-
-  - script: |
-      ~/.dotnet/tools/dotnet-cake build.cake --target=publish
-    displayName: Build
-
-  - task: ArchiveFiles@2
-    displayName: Artifacts - Repo - Archive
-    inputs:
-      rootFolderOrFile: .
-      includeRootFolder: false
-      archiveType: zip
-      archiveFile: '$(Build.ArtifactStagingDirectory)/repo/$(Build.BuildId).zip'
-
-  - task: PublishPipelineArtifact@0
-    displayName: Artifacts - Repo - Publish (Pipeline)
-    inputs:
-      targetPath: '$(Build.ArtifactStagingDirectory)/repo'
-      artifactName: repo
-
-- job: Job2
-
-  dependsOn: Job1
-
-  pool:
-    vmImage: 'ubuntu-16.04'
-
+stages:
+- stage: cd
+  displayName: CD
   variables:
   - group: docker-registry-dockerhub
-
-  steps:
-  - script: |
-      ls -Ral ..
-      docker version
-      dotnet --version
-      env
-    displayName: Diagnostics
-
-- deployment: Job3
-
-  dependsOn: Job1
-
-  pool:
-    vmImage: 'ubuntu-16.04'
-
-  environment: Default
-
-  strategy:
-    runOnce:
-      deploy:
-        steps:
-        - checkout: self
-        - script: |
-            ls -Ral ..
-            docker version
-            dotnet --version
-            env
+  dependsOn: ci
+  jobs:
+  - deployment: Job3
+    pool:
+      vmImage: 'ubuntu-16.04'
+    environment: Default
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          - script: |
+              ls -Ral ..
+              docker version
+              dotnet --version
+              env
