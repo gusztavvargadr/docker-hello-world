@@ -10,18 +10,18 @@ pool:
 
 variables:
 - group: docker-registry-dockerhub
-- name: docker-image-name
-  value: '$(docker-registry-address)$(docker-registry-username)/hello-world'
 
 steps:
 - script: |
     dotnet tool install Cake.Tool --global --version 0.33.0
   displayName: 'Init - .NET Tool Install Cake'
 
-- script: docker login --username $(docker-registry-username) --password $DOCKER_REGISTRY_PASSWORD $(docker-registry-address)
+- script: docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
   displayName: 'Init - Docker Login'
   env:
-    DOCKER_REGISTRY_PASSWORD: $(docker-registry-password)
+    DOCKER_LOGIN_USERNAME: ${docker-registry-username}
+    DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+    DOCKER_LOGIN_SERVER: ${docker-registry-server}
 
 - script: |
     ~/.dotnet/tools/dotnet-cake build.cake --target=publish
@@ -34,10 +34,9 @@ steps:
     includeRootFolder: false
     archiveType: zip
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-    replaceExistingArchive: true
 
 - task: PublishBuildArtifacts@1
   displayName: 'Artifacts - Publish'
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'drop'
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    artifactName: 'ci'
