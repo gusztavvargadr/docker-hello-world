@@ -71,7 +71,7 @@ jobs:
 
 - deployment: Job3
 
-  dependsOn: Job2
+  dependsOn: Job1
 
   pool:
     vmImage: 'ubuntu-16.04'
@@ -82,6 +82,7 @@ jobs:
     runOnce:
       deploy:
         steps:
+        - checkout: self
         - script: |
             ls -Ral
             docker version
