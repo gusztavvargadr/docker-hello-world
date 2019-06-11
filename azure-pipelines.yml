@@ -12,7 +12,7 @@ stages:
   - group: docker-registry-dockerhub
 
   jobs:
-  - job: ci-default
+  - job: default
     pool:
       vmImage: 'ubuntu-16.04'
 
@@ -54,7 +54,7 @@ stages:
   dependsOn: ci
 
   jobs:
-  - deployment: cd-default
+  - deployment: default
     pool:
       vmImage: 'ubuntu-16.04'
     environment: Default
