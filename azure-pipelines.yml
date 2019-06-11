@@ -12,7 +12,8 @@ stages:
   - group: docker-registry-dockerhub
 
   jobs:
-  - job: default
+  - job: publish
+    displayName: Publish
     pool:
       vmImage: 'ubuntu-16.04'
 
@@ -31,7 +32,7 @@ stages:
 
     - script: |
         ~/.dotnet/tools/dotnet-cake build.cake --target=publish
-      displayName: Build
+      displayName: Build - Publish
 
     - task: ArchiveFiles@2
       displayName: Artifacts - Archive - Source
@@ -45,7 +46,7 @@ stages:
       displayName: Artifacts - Publish
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)'
-        artifactName: ci-default
+        artifactName: ci-publish
 
 - stage: cd
   displayName: CD
@@ -54,14 +55,15 @@ stages:
   dependsOn: ci
 
   jobs:
-  - deployment: default
+  - deployment: publish
+    displayName: Publish
     pool:
       vmImage: 'ubuntu-16.04'
     environment: Default
+
     strategy:
       runOnce:
         deploy:
-
           steps:
           - script: |
               ls -Ral ..
