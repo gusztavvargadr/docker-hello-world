@@ -21,9 +21,9 @@ steps:
     docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
   displayName: Init - Docker Login
   env:
-    DOCKER_LOGIN_USERNAME: '${docker-registry-username}'
-    DOCKER_LOGIN_PASSWORD: '$(docker-registry-password)'
-    DOCKER_LOGIN_SERVER: '${docker-registry-server}'
+    DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+    DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+    DOCKER_LOGIN_SERVER: $(docker-registry-server)
 
 - script: |
     ~/.dotnet/tools/dotnet-cake build.cake --target=publish
