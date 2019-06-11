@@ -16,7 +16,9 @@ steps:
     dotnet tool install Cake.Tool --global --version 0.33.0
   displayName: 'Init - .NET Tool Install Cake'
 
-- script: docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+- script: |
+    env
+    docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
   displayName: 'Init - Docker Login'
   env:
     DOCKER_LOGIN_USERNAME: ${docker-registry-username}
