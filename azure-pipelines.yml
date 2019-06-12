@@ -62,7 +62,7 @@ stages:
   displayName: CD
   variables:
   - group: docker-registry-dockerhub
-  dependsOn: build
+  dependsOn: ci
 
   jobs:
   - deployment: deploy
