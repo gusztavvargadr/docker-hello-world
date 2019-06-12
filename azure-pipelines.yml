@@ -19,14 +19,6 @@ stages:
 
     steps:
     - script: |
-        env
-        git branch -a
-        git branch --contains HEAD
-        git branch --contains HEAD | tail -1 | awk '{print $NF}'
-        # git checkout $$(git branch --contains HEAD | tail -1 | awk '{print $NF}')
-        # git branch -a
-
-    - script: |
         dotnet tool install Cake.Tool --global --version 0.33.0
       displayName: Init - .NET - Install Cake
 
