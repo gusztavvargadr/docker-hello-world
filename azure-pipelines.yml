@@ -19,7 +19,7 @@ stages:
 
     steps:
     - script: |
-        ls -Ral ..
+        env
         git branch -a
         git branch --contains HEAD
         git branch --contains HEAD | tail -1 | awk '{print $NF}'
