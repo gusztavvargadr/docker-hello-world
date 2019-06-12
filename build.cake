@@ -1,19 +1,5 @@
 #load "core.cake"
 
-Task("Restore")
-  .IsDependentOn("Version")
-  .Does(() => {
-    Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", dockerRepository);
-    Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", dockerRegistry);
-    Environment.SetEnvironmentVariable("APP_IMAGE_TAG", version);
-
-    var settings = new DockerComposePullSettings {
-      IgnorePullFailures = true
-    };
-
-    DockerComposePull(settings);
-  });
-
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {

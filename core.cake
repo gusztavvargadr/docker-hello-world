@@ -1,8 +1,11 @@
 #addin "nuget:?package=Cake.Docker&version=0.10.0"
+#addin "nuget:?package=Cake.SemVer&version=3.0.0"
+#addin "nuget:?package=semver&version=2.0.4"
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 var version = Argument("build-version", string.Empty);
+Semver.SemVersion semanticVersion;
 
 var dockerRegistry = Argument("docker-registry", string.Empty);
 var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world");
@@ -28,8 +31,20 @@ Task("Version")
     } finally {
       Information(version);
 
+      semanticVersion = ParseSemVer(version);
+
       Environment.SetEnvironmentVariable("APP_IMAGE_TAG", version);
     }
+  });
+
+Task("Restore")
+  .IsDependentOn("Version")
+  .Does(() => {
+    var settings = new DockerComposePullSettings {
+      IgnorePullFailures = true
+    };
+
+    DockerComposePull(settings);
   });
 
 Task("Clean")

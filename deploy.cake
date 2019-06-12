@@ -1,15 +1,5 @@
 #load "core.cake"
 
-Task("Restore")
-  .IsDependentOn("Version")
-  .Does(() => {
-    var settings = new DockerComposePullSettings {
-      IgnorePullFailures = false
-    };
-
-    DockerComposePull(settings);
-  });
-
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
@@ -29,6 +19,10 @@ Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
     DockerTag(GetDockerImage(), GetDockerImage("rc"));
+
+    if (string.IsNullOrEmpty(semanticVersion.Prerelease)) {
+      DockerTag(GetDockerImage(), GetDockerImage("latest"));
+    }
   });
 
 Task("Publish")
@@ -38,6 +32,10 @@ Task("Publish")
     };
     
     DockerPush(settings, GetDockerImage("rc"));
+
+    if (string.IsNullOrEmpty(semanticVersion.Prerelease)) {
+      DockerPush(settings, GetDockerImage("latest"));
+    }
   });
 
 Task("Default")
