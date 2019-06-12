@@ -21,7 +21,7 @@ Task("Version")
       DockerComposeUp(settings, service);
 
       var logs = DockerComposeLogs(context, new DockerComposeLogsSettings { NoColor = true }, service);
-      version = logs.Split(Environment.NewLine).Last().Split('|').Last().Trim();
+      version = logs.Split(Environment.NewLine).Last().Split('|').Last().Trim().Replace("-origin-", "-");
     } finally {
       Information(version);
       Environment.SetEnvironmentVariable("APP_IMAGE_TAG", version);
