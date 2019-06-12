@@ -5,47 +5,100 @@ trigger:
 
 pr: none
 
-pool:
-  vmImage: 'ubuntu-16.04'
+stages:
+- stage: ci
+  displayName: ci
+  variables:
+  - group: docker-registry-dockerhub
 
-variables:
-- group: docker-registry-dockerhub
-- name: docker-image-name
-  value: '$(docker-registry-address)$(docker-registry-username)/hello-world'
+  jobs:
+  - job: build
+    displayName: Build
+    pool:
+      vmImage: 'ubuntu-16.04'
 
-steps:
-- script: docker login --username $(docker-registry-username) --password $DOCKER_REGISTRY_PASSWORD $(docker-registry-address)
-  displayName: 'Init'
-  env:
-    DOCKER_REGISTRY_PASSWORD: $(docker-registry-password)
+    steps:
+    - script: |
+        dotnet tool install Cake.Tool --global --version 0.33.0
+      displayName: Init - .NET - Install Cake
 
-- script: docker build --tag build src
-  displayName: 'Build'
+    - script: |
+        docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+      displayName: Init - Docker - Login
+      env:
+        DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+        DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+        DOCKER_LOGIN_SERVER: $(docker-registry-server)
 
-- script: docker run build
-  displayName: 'Test'
+    - script: |
+        ~/.dotnet/tools/dotnet-cake build.cake --target=publish
+      displayName: Build - Publish
 
-# - script: |
-#     docker tag build $(docker-image-name):source-version-$(Build.SourceVersion)
-#     docker push $(docker-image-name):source-version-$(Build.SourceVersion)
+    - task: ArchiveFiles@2
+      displayName: Artifacts - Archive - Source
+      inputs:
+        rootFolderOrFile: $(Build.SourcesDirectory)
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: '$(Build.ArtifactStagingDirectory)/source.zip'
 
-#     docker tag build $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
-#     docker push $(docker-image-name):source-branch-$(Build.SourceBranchName)-latest
-#   displayName: 'Publish with source tags'
+    - task: PublishPipelineArtifact@0
+      displayName: Artifacts - Publish
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifactName: ci-build
 
-- script: |
-    docker tag build $(docker-image-name):ci-azp-$(Build.BuildNumber)
-    docker push $(docker-image-name):ci-azp-$(Build.BuildNumber)
+    - script: |
+        ~/.dotnet/tools/dotnet-cake build.cake --target=clean
+      displayName: Clean - Build
 
-    docker tag build $(docker-image-name):ci-latest
-    docker push $(docker-image-name):ci-latest
-  displayName: 'Publish for CI build'
+    - script: |
+        docker logout $DOCKER_LOGOUT_SERVER
+      displayName: Clean - Docker - Logout
+      env:
+        DOCKER_LOGOUT_SERVER: $(docker-registry-server)
 
-- script: |
-    docker tag build $(docker-image-name):$(Build.SourceBranchName)
-    docker push $(docker-image-name):$(Build.SourceBranchName)
+- stage: cd
+  displayName: CD
+  variables:
+  - group: docker-registry-dockerhub
+  dependsOn: ci
 
-    docker tag build $(docker-image-name):latest
-    docker push $(docker-image-name):latest
-  displayName: 'Publish for release'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+  jobs:
+  - deployment: deploy
+    displayName: Deploy
+    pool:
+      vmImage: 'ubuntu-16.04'
+    environment: Default
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - script: |
+              dotnet tool install Cake.Tool --global --version 0.33.0
+            displayName: Init - .NET - Install Cake
+
+          - script: |
+              docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+            displayName: Init - Docker - Login
+            env:
+              DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+              DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+              DOCKER_LOGIN_SERVER: $(docker-registry-server)
+
+          - script: |
+              ~/.dotnet/tools/dotnet-cake deploy.cake --target=publish
+            displayName: Build - Publish
+
+          - script: |
+              ~/.dotnet/tools/dotnet-cake deploy.cake --target=clean
+            displayName: Clean - Build
+
+          - script: |
+              docker logout $DOCKER_LOGOUT_SERVER
+            displayName: Clean - Docker - Logout
+            env:
+              DOCKER_LOGOUT_SERVER: $(docker-registry-server)

@@ -1,0 +1,6 @@
+.vagrant
+vagrant.override.yml
+
+tools
+
+docker-compose.override.yml
