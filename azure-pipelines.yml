@@ -6,25 +6,25 @@ trigger:
 pr: none
 
 stages:
-- stage: build
-  displayName: Build
+- stage: ci
+  displayName: ci
   variables:
   - group: docker-registry-dockerhub
 
   jobs:
-  - job: publish
-    displayName: Publish
+  - job: build
+    displayName: Build
     pool:
       vmImage: 'ubuntu-16.04'
 
     steps:
     - script: |
         dotnet tool install Cake.Tool --global --version 0.33.0
-      displayName: Init - .NET Tool Install Cake
+      displayName: Init - .NET - Install Cake
 
     - script: |
         docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-      displayName: Init - Docker Login
+      displayName: Init - Docker - Login
       env:
         DOCKER_LOGIN_USERNAME: $(docker-registry-username)
         DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
@@ -32,7 +32,7 @@ stages:
 
     - script: |
         ~/.dotnet/tools/dotnet-cake build.cake --target=publish
-      displayName: Publish
+      displayName: Run - Build - Publish
 
     - task: ArchiveFiles@2
       displayName: Artifacts - Archive - Source
@@ -46,17 +46,27 @@ stages:
       displayName: Artifacts - Publish
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)'
-        artifactName: build-publish
+        artifactName: ci-build
 
-- stage: deploy
-  displayName: Deploy
+    - script: |
+        ~/.dotnet/tools/dotnet-cake build.cake --target=clean
+      displayName: Cleanup - Build - Clean
+
+    - script: |
+        docker logout $DOCKER_LOGOUT_SERVER
+      displayName: Cleanup - Docker - Logout
+      env:
+        DOCKER_LOGOUT_SERVER: $(docker-registry-server)
+
+- stage: cd
+  displayName: CD
   variables:
   - group: docker-registry-dockerhub
   dependsOn: build
 
   jobs:
-  - deployment: publish
-    displayName: Publish
+  - deployment: deploy
+    displayName: Deploy
     pool:
       vmImage: 'ubuntu-16.04'
     environment: Default
@@ -72,11 +82,11 @@ stages:
 
           - script: |
               dotnet tool install Cake.Tool --global --version 0.33.0
-            displayName: Init - .NET Tool Install Cake
+            displayName: Init - .NET - Install Cake
 
           - script: |
               docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-            displayName: Init - Docker Login
+            displayName: Init - Docker - Login
             env:
               DOCKER_LOGIN_USERNAME: $(docker-registry-username)
               DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
@@ -84,4 +94,14 @@ stages:
 
           - script: |
               ~/.dotnet/tools/dotnet-cake build.cake --target=restore
-            displayName: Build
+            displayName: Run - Build - Restore
+
+          - script: |
+              ~/.dotnet/tools/dotnet-cake build.cake --target=clean
+            displayName: Cleanup - Build - Clean
+
+          - script: |
+              docker logout $DOCKER_LOGOUT_SERVER
+            displayName: Cleanup - Docker - Logout
+            env:
+              DOCKER_LOGOUT_SERVER: $(docker-registry-server)
