@@ -21,7 +21,8 @@ stages:
     - script: |
         ls -Ral ..
         git branch -a
-        git checkout $(git branch --contains HEAD | tail -1 | awk '{print $NF}')
+        git branch --contains HEAD | tail -1 | awk '{print $NF}'
+        git checkout $$(git branch --contains HEAD | tail -1 | awk '{print $NF}')
         git branch -a
 
     - script: |
@@ -86,7 +87,7 @@ stages:
           - script: |
               ls -Ral ..
               git branch -a
-              git branch --contains HEAD | tail -1 | awk '{print $NF}
+              git branch --contains HEAD | tail -1 | awk '{print $NF}'
               git checkout $$(git branch --contains HEAD | tail -1 | awk '{print $NF}')
               git branch -a
 
