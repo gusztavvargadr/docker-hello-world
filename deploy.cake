@@ -3,12 +3,8 @@
 Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
-    Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", dockerRepository);
-    Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", dockerRegistry);
-    Environment.SetEnvironmentVariable("APP_IMAGE_TAG", version);
-
     var settings = new DockerComposePullSettings {
-      IgnorePullFailures = true
+      IgnorePullFailures = false
     };
 
     DockerComposePull(settings);
@@ -17,11 +13,6 @@ Task("Restore")
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var settings = new DockerComposeBuildSettings {
-    };
-    var service = "app";
-
-    DockerComposeBuild(settings, service);
   });
 
 Task("Test")
@@ -37,6 +28,7 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
+    DockerTag(GetDockerImage(), GetDockerImage("rc"));
   });
 
 Task("Publish")
@@ -45,7 +37,7 @@ Task("Publish")
     var settings = new DockerImagePushSettings {
     };
     
-    DockerPush(settings, GetDockerImage());
+    DockerPush(settings, GetDockerImage("rc"));
   });
 
 Task("Default")

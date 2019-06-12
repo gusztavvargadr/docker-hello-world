@@ -7,10 +7,8 @@ services:
       - .:/data
     command:
       - /data
-      - /l
-      - console
       - /showvariable
       - SemVer
   app:
     build: src
-    image: ${APP_IMAGE_REGISTRY}${APP_IMAGE_NAME}:${APP_IMAGE_TAG}
+    image: ${APP_IMAGE_REGISTRY}${APP_IMAGE_REPOSITORY}:${APP_IMAGE_TAG}
