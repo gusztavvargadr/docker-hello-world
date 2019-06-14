@@ -18,6 +18,9 @@ var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"
 var dockerRegistry = Argument("docker-registry", string.Empty);
 var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world");
 
+Action restored = () => {};
+Action cleaned = () => {};
+
 Task("Version")
   .Does(context => {
     try {
@@ -66,15 +69,11 @@ Task("Version")
 Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
-    var settings = new DockerComposePullSettings {
-      IgnorePullFailures = true
-    };
-
-    DockerComposePull(settings);
-
     EnsureDirectoryExists(buildDirectory);
 
     EnsureDirectoryExists(artifactsDirectory);
+
+    restored();
   });
 
 Task("Clean")
@@ -89,6 +88,8 @@ Task("Clean")
     CleanDirectory(artifactsDirectory);
 
     CleanDirectory(buildDirectory);
+
+    cleaned();
   });
 
 Task("Default")

@@ -1,13 +1,24 @@
 #load "core.cake"
 
+restored = () => {
+  var settings = new DockerImageLoadSettings {
+    Input = artifactsDirectory.Path + $"/{sourceVersion}.tar"
+  };
+
+  DockerLoad(settings);
+};
+
+cleaned = () => {
+  var settings = new DockerImageRemoveSettings {
+    Force = true
+  };
+
+  DockerRemove(settings, GetDockerImage("rc"));
+};
+
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var settings = new DockerImageLoadSettings {
-      Input = artifactsDirectory.Path + $"/{sourceVersion}.tar"
-    };
-
-    DockerLoad(settings);
   });
 
 Task("Test")
