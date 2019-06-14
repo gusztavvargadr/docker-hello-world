@@ -28,11 +28,16 @@ stages:
         dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
       displayName: Build - Publish
 
-    - task: PublishPipelineArtifact@0
-      displayName: Artifacts - Publish
+    - task: PublishBuildArtifacts@1
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-        artifactName: ci-build
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'artifact'
+
+    # - task: PublishPipelineArtifact@0
+    #   displayName: Artifacts - Publish
+    #   inputs:
+    #     targetPath: '$(Build.ArtifactStagingDirectory)'
+    #     artifactName: artifact
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
