@@ -25,7 +25,7 @@ stages:
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake build.cake --target=publish
+        dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
       displayName: Build - Publish
 
     - task: PublishPipelineArtifact@0
@@ -36,7 +36,7 @@ stages:
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake build.cake --target=clean
+        dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
       displayName: Clean - Build
 
 - stage: cd
