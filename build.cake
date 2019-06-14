@@ -36,7 +36,4 @@ Task("Publish")
     CopyFiles(buildDirectory.Path + "/**/*.tar", artifactsDirectory);
   });
 
-Task("Default")
-  .IsDependentOn("Publish");
-
 RunTarget(target);

@@ -17,6 +17,10 @@ stages:
 
     steps:
     - script: |
+        ls -Ral $(Build.ArtifactStagingDirectory)
+      displayName: List artifacts
+
+    - script: |
         dotnet tool install Cake.Tool --global --version 0.33.0
         dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
       displayName: Init - .NET - Tools
@@ -29,7 +33,7 @@ stages:
     - task: PublishPipelineArtifact@0
       displayName: Artifacts - Publish
       inputs:
-        artifactName: artifact
+        artifactName: ci
         targetPath: '$(Build.ArtifactStagingDirectory)'
 
     - script: |
@@ -44,52 +48,80 @@ stages:
   dependsOn: ci
 
   jobs:
-  # - deployment: deploy
-  #   displayName: Deploy
-  #   pool:
-  #     vmImage: 'ubuntu-16.04'
-  #   environment: Default
-
-  #   strategy:
-  #     runOnce:
-  #       deploy:
-  #         steps:
-  #         - checkout: self
   - job: deploy
     displayName: Deploy
     pool:
       vmImage: 'ubuntu-16.04'
 
     steps:
-          - task: DownloadPipelineArtifact@0
-            displayName: Artifacts - Download
-            inputs:
-              artifactName: artifact
-              targetPath: '$(Build.ArtifactStagingDirectory)'
+    - task: DownloadPipelineArtifact@0
+      displayName: Artifacts - Download
+      inputs:
+        artifactName: ci
+        targetPath: '$(Build.ArtifactStagingDirectory)'
 
-          - script: |
-              dotnet tool install Cake.Tool --tool-path . --version 0.33.0
-              dotnet tool install GitVersion.Tool --tool-path . --version 4.0.1-beta1-65
-            displayName: Init - .NET - Tools
+    - script: |
+        ls -Ral $(Build.ArtifactStagingDirectory)
+      displayName: List artifacts
 
-          - script: |
-              docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-            displayName: Init - Docker - Login
-            env:
-              DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-              DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-              DOCKER_LOGIN_SERVER: $(docker-registry-server)
+    - script: |
+        dotnet tool install Cake.Tool --tool-path . --version 0.33.0
+        dotnet tool install GitVersion.Tool --tool-path . --version 4.0.1-beta1-65
+      displayName: Init - .NET - Tools
 
-          - script: |
-              dotnet cake deploy.cake --target=publish
-            displayName: Build - Publish
+    - script: |
+        docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+      displayName: Init - Docker - Login
+      env:
+        DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+        DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+        DOCKER_LOGIN_SERVER: $(docker-registry-server)
 
-          - script: |
-              dotnet cake deploy.cake --target=clean
-            displayName: Clean - Build
+    - script: |
+        export PATH="$PATH:~/.dotnet/tools"
+        dotnet cake deploy.cake --target=publish
+      displayName: Build - Publish
 
-          - script: |
-              docker logout $DOCKER_LOGOUT_SERVER
-            displayName: Clean - Docker - Logout
-            env:
-              DOCKER_LOGOUT_SERVER: $(docker-registry-server)
+    - task: PublishPipelineArtifact@0
+      displayName: Artifacts - Publish
+      inputs:
+        artifactName: cd
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+
+    - script: |
+        export PATH="$PATH:~/.dotnet/tools"
+        dotnet cake deploy.cake --target=clean
+      displayName: Clean - Build
+
+    - script: |
+        docker logout $DOCKER_LOGOUT_SERVER
+      displayName: Clean - Docker - Logout
+      env:
+        DOCKER_LOGOUT_SERVER: $(docker-registry-server)
+
+- stage: test
+  displayName: Test
+  dependsOn: cd
+
+  jobs:
+  - job: test
+    displayName: Test
+    pool:
+      vmImage: 'ubuntu-16.04'
+
+    steps:
+    - task: DownloadPipelineArtifact@0
+      displayName: Artifacts - Download
+      inputs:
+        artifactName: ci
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+
+    - task: DownloadPipelineArtifact@0
+      displayName: Artifacts - Download
+      inputs:
+        artifactName: cd
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+
+    - script: |
+        ls -Ral $(Build.ArtifactStagingDirectory)
+      displayName: List artifacts

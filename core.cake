@@ -91,6 +91,9 @@ Task("Clean")
     CleanDirectory(buildDirectory);
   });
 
+Task("Default")
+  .IsDependentOn("Publish");
+
 private string GetDockerImage(string tag = null) {
   if (string.IsNullOrEmpty(tag)) {
     tag = sourceVersion;

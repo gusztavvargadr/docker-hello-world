@@ -45,7 +45,4 @@ Task("Publish")
     }
   });
 
-Task("Default")
-  .IsDependentOn("Package");
-
 RunTarget(target);
