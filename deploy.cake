@@ -3,6 +3,11 @@
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
+    var settings = new DockerImageLoadSettings {
+      Input = artifactsDirectory.Path + $"/{sourceVersion}.tar"
+    };
+
+    DockerLoad(settings);
   });
 
 Task("Test")
@@ -19,9 +24,11 @@ Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
     DockerTag(GetDockerImage(), GetDockerImage("rc"));
+    Information($"Tagged '{GetDockerImage()}' as '{GetDockerImage("rc")}'.");
 
-    if (string.IsNullOrEmpty(semanticVersion.Prerelease)) {
+    if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
       DockerTag(GetDockerImage(), GetDockerImage("latest"));
+      Information($"Tagged '{GetDockerImage()}' as '{GetDockerImage("latest")}'.");
     }
   });
 
@@ -33,7 +40,7 @@ Task("Publish")
     
     DockerPush(settings, GetDockerImage("rc"));
 
-    if (string.IsNullOrEmpty(semanticVersion.Prerelease)) {
+    if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
       DockerPush(settings, GetDockerImage("latest"));
     }
   });

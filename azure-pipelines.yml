@@ -20,27 +20,12 @@ stages:
     steps:
     - script: |
         dotnet tool install Cake.Tool --global --version 0.33.0
-      displayName: Init - .NET - Install Cake
-
-    - script: |
-        docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-      displayName: Init - Docker - Login
-      env:
-        DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-        DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-        DOCKER_LOGIN_SERVER: $(docker-registry-server)
+        dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
+      displayName: Init - .NET - Tools
 
     - script: |
         ~/.dotnet/tools/dotnet-cake build.cake --target=publish
       displayName: Build - Publish
-
-    - task: ArchiveFiles@2
-      displayName: Artifacts - Archive - Source
-      inputs:
-        rootFolderOrFile: $(Build.SourcesDirectory)
-        includeRootFolder: false
-        archiveType: zip
-        archiveFile: '$(Build.ArtifactStagingDirectory)/source.zip'
 
     - task: PublishPipelineArtifact@0
       displayName: Artifacts - Publish
@@ -51,12 +36,6 @@ stages:
     - script: |
         ~/.dotnet/tools/dotnet-cake build.cake --target=clean
       displayName: Clean - Build
-
-    - script: |
-        docker logout $DOCKER_LOGOUT_SERVER
-      displayName: Clean - Docker - Logout
-      env:
-        DOCKER_LOGOUT_SERVER: $(docker-registry-server)
 
 - stage: cd
   displayName: CD
@@ -79,7 +58,8 @@ stages:
 
           - script: |
               dotnet tool install Cake.Tool --global --version 0.33.0
-            displayName: Init - .NET - Install Cake
+              dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
+            displayName: Init - .NET - Tools
 
           - script: |
               docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
