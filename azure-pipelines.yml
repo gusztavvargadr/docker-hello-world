@@ -79,7 +79,7 @@ stages:
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake deploy.cake --target=publish
+        dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
       displayName: Build - Publish
 
     - task: PublishPipelineArtifact@0
@@ -90,7 +90,7 @@ stages:
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake deploy.cake --target=clean
+        dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
       displayName: Clean - Build
 
     - script: |
@@ -98,30 +98,3 @@ stages:
       displayName: Clean - Docker - Logout
       env:
         DOCKER_LOGOUT_SERVER: $(docker-registry-server)
-
-- stage: test
-  displayName: Test
-  dependsOn: cd
-
-  jobs:
-  - job: test
-    displayName: Test
-    pool:
-      vmImage: 'ubuntu-16.04'
-
-    steps:
-    - task: DownloadPipelineArtifact@0
-      displayName: Artifacts - Download
-      inputs:
-        artifactName: ci
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-
-    - task: DownloadPipelineArtifact@0
-      displayName: Artifacts - Download
-      inputs:
-        artifactName: cd
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-
-    - script: |
-        ls -Ral $(Build.ArtifactStagingDirectory)
-      displayName: List artifacts
