@@ -24,7 +24,8 @@ stages:
       displayName: Init - .NET - Tools
 
     - script: |
-        ~/.dotnet/tools/dotnet-cake build.cake --target=publish
+        export PATH="$PATH:~/.dotnet/tools"
+        dotnet cake build.cake --target=publish
       displayName: Build - Publish
 
     - task: PublishPipelineArtifact@0
@@ -34,7 +35,8 @@ stages:
         artifactName: ci-build
 
     - script: |
-        ~/.dotnet/tools/dotnet-cake build.cake --target=clean
+        export PATH="$PATH:~/.dotnet/tools"
+        dotnet cake build.cake --target=clean
       displayName: Clean - Build
 
 - stage: cd
@@ -57,8 +59,8 @@ stages:
           - checkout: self
 
           - script: |
-              dotnet tool install Cake.Tool --global --version 0.33.0
-              dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
+              dotnet tool install Cake.Tool --tool-path . --version 0.33.0
+              dotnet tool install GitVersion.Tool --tool-path . --version 4.0.1-beta1-65
             displayName: Init - .NET - Tools
 
           - script: |
@@ -70,11 +72,11 @@ stages:
               DOCKER_LOGIN_SERVER: $(docker-registry-server)
 
           - script: |
-              ~/.dotnet/tools/dotnet-cake deploy.cake --target=publish
+              dotnet cake deploy.cake --target=publish
             displayName: Build - Publish
 
           - script: |
-              ~/.dotnet/tools/dotnet-cake deploy.cake --target=clean
+              dotnet cake deploy.cake --target=clean
             displayName: Clean - Build
 
           - script: |
