@@ -8,8 +8,6 @@ pr: none
 stages:
 - stage: ci
   displayName: ci
-  variables:
-  - group: docker-registry-dockerhub
 
   jobs:
   - job: build
@@ -46,23 +44,28 @@ stages:
   dependsOn: ci
 
   jobs:
-  - deployment: deploy
+  # - deployment: deploy
+  #   displayName: Deploy
+  #   pool:
+  #     vmImage: 'ubuntu-16.04'
+  #   environment: Default
+
+  #   strategy:
+  #     runOnce:
+  #       deploy:
+  #         steps:
+  #         - checkout: self
+  - job: deploy
     displayName: Deploy
     pool:
       vmImage: 'ubuntu-16.04'
-    environment: Default
 
-    strategy:
-      runOnce:
-        deploy:
-          steps:
+    steps:
           - task: DownloadPipelineArtifact@0
             displayName: Artifacts - Download
             inputs:
               artifactName: artifact
               targetPath: '$(Build.ArtifactStagingDirectory)'
-
-          - checkout: self
 
           - script: |
               dotnet tool install Cake.Tool --tool-path . --version 0.33.0
