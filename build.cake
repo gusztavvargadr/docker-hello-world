@@ -23,17 +23,22 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
+    var output = buildDirectory.Path + $"/{sourceVersion}.tar";
     var settings = new DockerImageSaveSettings {
-      Output = buildDirectory.Path + $"/{sourceVersion}.tar"
+      Output = output
     };
 
     DockerSave(settings, GetDockerImage());
+
+    Information($"Saved '{output}'.");
   });
 
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
     CopyFiles(buildDirectory.Path + "/**/*.tar", artifactsDirectory);
+
+    Information($"Copied to '{artifactsDirectory}'.");
   });
 
 RunTarget(target);

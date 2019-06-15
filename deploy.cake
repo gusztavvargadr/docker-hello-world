@@ -1,8 +1,9 @@
 #load "core.cake"
 
 Restored = () => {
+  var input = artifactsDirectory.Path + $"/{sourceVersion}.tar";
   var settings = new DockerImageLoadSettings {
-    Input = artifactsDirectory.Path + $"/{sourceVersion}.tar"
+    Input =input
   };
 
   DockerLoad(settings);
@@ -11,16 +12,32 @@ Restored = () => {
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
+    var settings = new DockerImagePushSettings {
+    };
+    
+    DockerPush(settings, GetDockerImage());
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var settings = new DockerComposeRunSettings {
+    var removeSettings = new DockerImageRemoveSettings {
+      Force = true
     };
+
+    DockerRemove(removeSettings, GetDockerImage());
+
     var service = "app";
 
-    DockerComposeRun(settings, service);
+    var pullSettings = new DockerComposePullSettings {
+    };
+
+    DockerComposePull(pullSettings, service);
+
+    var runSettings = new DockerComposeRunSettings {
+    };
+
+    DockerComposeRun(runSettings, service);
   });
 
 Task("Package")
@@ -41,8 +58,6 @@ Task("Publish")
     var settings = new DockerImagePushSettings {
     };
     
-    DockerPush(settings, GetDockerImage());
-
     DockerPush(settings, GetDockerImage("rc"));
 
     if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
