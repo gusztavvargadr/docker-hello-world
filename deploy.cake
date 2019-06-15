@@ -2,21 +2,19 @@
 
 Restored = () => {
   var input = artifactsDirectory.Path + $"/{sourceVersion}.tar";
-  var settings = new DockerImageLoadSettings {
+  var loadSettings = new DockerImageLoadSettings {
     Input =input
   };
-
-  DockerLoad(settings);
+  DockerLoad(loadSettings);
 };
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var settings = new DockerImagePushSettings {
+    DockerTag(GetDockerImageSource(), GetDockerImageTarget());
+    var pushSettings = new DockerImagePushSettings {
     };
-
-    DockerTag(GetDockerImageSource(), GetDockerImageTarget("rc"));
-    DockerPush(settings, GetDockerImageTarget());
+    DockerPush(pushSettings, GetDockerImageTarget());
   });
 
 Task("Test")
@@ -25,19 +23,16 @@ Task("Test")
     var removeSettings = new DockerImageRemoveSettings {
       Force = true
     };
-
     DockerRemove(removeSettings, GetDockerImageTarget());
 
     var service = "app";
 
     var pullSettings = new DockerComposePullSettings {
     };
-
     DockerComposePull(pullSettings, service);
 
     var runSettings = new DockerComposeRunSettings {
     };
-
     DockerComposeRun(runSettings, service);
   });
 
@@ -45,10 +40,12 @@ Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
     DockerTag(GetDockerImageSource(), GetDockerImageTarget("rc"));
+
     Information($"Tagged '{GetDockerImageSource()}' as '{GetDockerImageTarget("rc")}'.");
 
     if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
       DockerTag(GetDockerImageSource(), GetDockerImageTarget("latest"));
+
       Information($"Tagged '{GetDockerImageSource()}' as '{GetDockerImageTarget("latest")}'.");
     }
   });
@@ -56,22 +53,21 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    var settings = new DockerImagePushSettings {
+    var pushSettings = new DockerImagePushSettings {
     };
-    
-    DockerPush(settings, GetDockerImageTarget("rc"));
+
+    DockerPush(pushSettings, GetDockerImageTarget("rc"));
 
     if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      DockerPush(settings, GetDockerImageTarget("latest"));
+      DockerPush(pushSettings, GetDockerImageTarget("latest"));
     }
   });
 
 Cleaned = () => {
-  var settings = new DockerImageRemoveSettings {
+  var removeSettings = new DockerImageRemoveSettings {
     Force = true
   };
-
-  DockerRemove(settings, GetDockerImageTarget("rc"));
+  DockerRemove(removeSettings, GetDockerImageTarget("rc"));
 };
 
 RunTarget(target);

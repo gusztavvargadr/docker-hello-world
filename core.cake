@@ -20,6 +20,12 @@ var dockerRegistrySource = Argument("docker-registry-source", dockerRegistryDefa
 var dockerRegistryTarget = Argument("docker-registry-target", dockerRegistryDefault);
 var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world");
 
+Action Versioned = () => {
+  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", dockerRegistryTarget);
+  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", dockerRepository);
+  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", sourceVersion);
+};
+
 Task("Version")
   .Does(context => {
     try {
@@ -59,9 +65,7 @@ Task("Version")
       Information($"App: '{appVersion}'.");
       Information($"Package: '{packageVersion}'.");
 
-      Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", dockerRegistryTarget);
-      Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", dockerRepository);
-      Environment.SetEnvironmentVariable("APP_IMAGE_TAG", sourceVersion);
+      Versioned();
     }
   });
 
@@ -71,15 +75,13 @@ Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
     EnsureDirectoryExists(buildDirectory);
-
     EnsureDirectoryExists(artifactsDirectory);
 
-    var settings = new DockerComposeUpSettings {
+    var upSettings = new DockerComposeUpSettings {
       DetachedMode = true
     };
     var service = "registry";
-
-    DockerComposeUp(settings, service);
+    DockerComposeUp(upSettings, service);
 
     Restored();
   });
@@ -89,14 +91,12 @@ Action Cleaned = () => {};
 Task("Clean")
   .IsDependentOn("Version")
   .Does(() => {
-    var settings = new DockerComposeDownSettings {
+    var downSettings = new DockerComposeDownSettings {
       Rmi = "all"
     };
-
-    DockerComposeDown(settings);
+    DockerComposeDown(downSettings);
 
     CleanDirectory(artifactsDirectory);
-
     CleanDirectory(buildDirectory);
 
     Cleaned();

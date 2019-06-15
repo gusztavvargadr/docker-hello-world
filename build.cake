@@ -3,32 +3,29 @@
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var settings = new DockerComposeBuildSettings {
+    var buildSettings = new DockerComposeBuildSettings {
     };
     var service = "app";
-
-    DockerComposeBuild(settings, service);
+    DockerComposeBuild(buildSettings, service);
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var settings = new DockerComposeRunSettings {
+    var runSettings = new DockerComposeRunSettings {
     };
     var service = "app";
-
-    DockerComposeRun(settings, service);
+    DockerComposeRun(runSettings, service);
   });
 
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
     var output = buildDirectory.Path + $"/{sourceVersion}.tar";
-    var settings = new DockerImageSaveSettings {
+    var saveSettings = new DockerImageSaveSettings {
       Output = output
     };
-
-    DockerSave(settings, GetDockerImageSource());
+    DockerSave(saveSettings, GetDockerImageSource());
 
     Information($"Saved '{output}'.");
   });
