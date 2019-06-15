@@ -9,6 +9,8 @@ pr: none
 stages:
 - stage: ci
   displayName: ci
+  variables:
+  - group: docker-registry-dockerhub
 
   jobs:
   - job: build
@@ -24,7 +26,7 @@ stages:
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
+        dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry=$(docker-registry-server)/
       displayName: Build - Publish
 
     - task: PublishPipelineArtifact@0
@@ -35,7 +37,7 @@ stages:
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
+        dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry=$(docker-registry-server)/
       displayName: Clean - Build
 
 - stage: cd
@@ -72,12 +74,12 @@ stages:
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
+        dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry=$(docker-registry-server)/
       displayName: Build - Publish
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
+        dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry=$(docker-registry-server)/
       displayName: Clean - Build
 
     - script: |
