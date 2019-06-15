@@ -1,19 +1,11 @@
 #load "core.cake"
 
-restored = () => {
+Restored = () => {
   var settings = new DockerImageLoadSettings {
     Input = artifactsDirectory.Path + $"/{sourceVersion}.tar"
   };
 
   DockerLoad(settings);
-};
-
-cleaned = () => {
-  var settings = new DockerImageRemoveSettings {
-    Force = true
-  };
-
-  DockerRemove(settings, GetDockerImage("rc"));
 };
 
 Task("Build")
@@ -49,7 +41,7 @@ Task("Publish")
     var settings = new DockerImagePushSettings {
     };
     
-    DockerPush(settings, GetDockerImage);
+    DockerPush(settings, GetDockerImage());
 
     DockerPush(settings, GetDockerImage("rc"));
 
@@ -57,5 +49,13 @@ Task("Publish")
       DockerPush(settings, GetDockerImage("latest"));
     }
   });
+
+Cleaned = () => {
+  var settings = new DockerImageRemoveSettings {
+    Force = true
+  };
+
+  DockerRemove(settings, GetDockerImage("rc"));
+};
 
 RunTarget(target);

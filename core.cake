@@ -2,7 +2,7 @@
 #addin "nuget:?package=Cake.SemVer&version=3.0.0"
 #addin "nuget:?package=semver&version=2.0.4"
 
-var target = Argument("target", "Default");
+var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
 
 var sourceVersion = Argument("source-version", string.Empty);
@@ -17,9 +17,6 @@ var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"
 
 var dockerRegistry = Argument("docker-registry", string.Empty);
 var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world");
-
-Action restored = () => {};
-Action cleaned = () => {};
 
 Task("Version")
   .Does(context => {
@@ -66,6 +63,8 @@ Task("Version")
     }
   });
 
+Action Restored = () => {};
+
 Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
@@ -73,8 +72,10 @@ Task("Restore")
 
     EnsureDirectoryExists(artifactsDirectory);
 
-    restored();
+    Restored();
   });
+
+Action Cleaned = () => {};
 
 Task("Clean")
   .IsDependentOn("Version")
@@ -89,11 +90,8 @@ Task("Clean")
 
     CleanDirectory(buildDirectory);
 
-    cleaned();
+    Cleaned();
   });
-
-Task("Default")
-  .IsDependentOn("Publish");
 
 private string GetDockerImage(string tag = null) {
   if (string.IsNullOrEmpty(tag)) {
