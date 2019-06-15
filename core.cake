@@ -15,7 +15,7 @@ var sourceDirectory = Directory(Argument("source-directory", "./src"));
 var buildDirectory = Directory(Argument("build-directory", "./build"));
 var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
 
-var dockerRegistry = Argument("docker-registry", string.Empty);
+var dockerRegistry = Argument("docker-registry", "localhost:5000/");
 var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world");
 
 Task("Version")
@@ -71,6 +71,13 @@ Task("Restore")
     EnsureDirectoryExists(buildDirectory);
 
     EnsureDirectoryExists(artifactsDirectory);
+
+    var settings = new DockerComposeUpSettings {
+      DetachedMode = true
+    };
+    var service = "registry";
+
+    DockerComposeUp(settings, service);
 
     Restored();
   });

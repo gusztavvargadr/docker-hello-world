@@ -4,3 +4,7 @@ services:
   app:
     build: src
     image: ${APP_IMAGE_REGISTRY}${APP_IMAGE_REPOSITORY}:${APP_IMAGE_TAG}
+  registry:
+    image: library/registry:2.7.1
+    ports:
+    - "5000:5000"
