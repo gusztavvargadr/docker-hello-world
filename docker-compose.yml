@@ -2,8 +2,8 @@ version: '3'
 
 services:
   app:
-    build: src
     image: ${APP_IMAGE_REGISTRY}${APP_IMAGE_REPOSITORY}:${APP_IMAGE_TAG}
+    build: src
   registry:
     image: library/registry:2.7.1
     ports:

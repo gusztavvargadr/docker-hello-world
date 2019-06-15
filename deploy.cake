@@ -14,8 +14,9 @@ Task("Build")
   .Does(() => {
     var settings = new DockerImagePushSettings {
     };
-    
-    DockerPush(settings, GetDockerImage());
+
+    DockerTag(GetDockerImageSource(), GetDockerImageTarget("rc"));
+    DockerPush(settings, GetDockerImageTarget());
   });
 
 Task("Test")
@@ -25,7 +26,7 @@ Task("Test")
       Force = true
     };
 
-    DockerRemove(removeSettings, GetDockerImage());
+    DockerRemove(removeSettings, GetDockerImageTarget());
 
     var service = "app";
 
@@ -43,12 +44,12 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    DockerTag(GetDockerImage(), GetDockerImage("rc"));
-    Information($"Tagged '{GetDockerImage()}' as '{GetDockerImage("rc")}'.");
+    DockerTag(GetDockerImageSource(), GetDockerImageTarget("rc"));
+    Information($"Tagged '{GetDockerImageSource()}' as '{GetDockerImageTarget("rc")}'.");
 
     if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      DockerTag(GetDockerImage(), GetDockerImage("latest"));
-      Information($"Tagged '{GetDockerImage()}' as '{GetDockerImage("latest")}'.");
+      DockerTag(GetDockerImageSource(), GetDockerImageTarget("latest"));
+      Information($"Tagged '{GetDockerImageSource()}' as '{GetDockerImageTarget("latest")}'.");
     }
   });
 
@@ -58,10 +59,10 @@ Task("Publish")
     var settings = new DockerImagePushSettings {
     };
     
-    DockerPush(settings, GetDockerImage("rc"));
+    DockerPush(settings, GetDockerImageTarget("rc"));
 
     if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      DockerPush(settings, GetDockerImage("latest"));
+      DockerPush(settings, GetDockerImageTarget("latest"));
     }
   });
 
@@ -70,7 +71,7 @@ Cleaned = () => {
     Force = true
   };
 
-  DockerRemove(settings, GetDockerImage("rc"));
+  DockerRemove(settings, GetDockerImageTarget("rc"));
 };
 
 RunTarget(target);

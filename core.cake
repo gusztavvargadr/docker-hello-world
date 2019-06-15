@@ -15,7 +15,9 @@ var sourceDirectory = Directory(Argument("source-directory", "./src"));
 var buildDirectory = Directory(Argument("build-directory", "./build"));
 var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
 
-var dockerRegistry = Argument("docker-registry", "localhost:5000/");
+var dockerRegistryDefault = "localhost:5000/";
+var dockerRegistrySource = Argument("docker-registry-source", dockerRegistryDefault);
+var dockerRegistryTarget = Argument("docker-registry-target", dockerRegistryDefault);
 var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world");
 
 Task("Version")
@@ -57,8 +59,8 @@ Task("Version")
       Information($"App: '{appVersion}'.");
       Information($"Package: '{packageVersion}'.");
 
+      Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", dockerRegistryTarget);
       Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", dockerRepository);
-      Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", dockerRegistry);
       Environment.SetEnvironmentVariable("APP_IMAGE_TAG", sourceVersion);
     }
   });
@@ -100,10 +102,18 @@ Task("Clean")
     Cleaned();
   });
 
-private string GetDockerImage(string tag = null) {
+private string GetDockerImageSource(string tag = null) {
   if (string.IsNullOrEmpty(tag)) {
     tag = sourceVersion;
   }
 
-  return $"{dockerRegistry}{dockerRepository}:{tag}";
+  return $"{dockerRegistrySource}{dockerRepository}:{tag}";
+}
+
+private string GetDockerImageTarget(string tag = null) {
+  if (string.IsNullOrEmpty(tag)) {
+    tag = sourceVersion;
+  }
+
+  return $"{dockerRegistryTarget}{dockerRepository}:{tag}";
 }

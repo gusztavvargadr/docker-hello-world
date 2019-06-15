@@ -28,7 +28,7 @@ Task("Package")
       Output = output
     };
 
-    DockerSave(settings, GetDockerImage());
+    DockerSave(settings, GetDockerImageSource());
 
     Information($"Saved '{output}'.");
   });
