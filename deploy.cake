@@ -49,6 +49,8 @@ Task("Publish")
     var settings = new DockerImagePushSettings {
     };
     
+    DockerPush(settings, GetDockerImage);
+
     DockerPush(settings, GetDockerImage("rc"));
 
     if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
