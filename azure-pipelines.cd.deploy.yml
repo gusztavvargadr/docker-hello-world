@@ -1,9 +1,9 @@
-jobs:
-- job: deploy
-  displayName: Deploy
-  pool:
-    vmImage: 'ubuntu-16.04'
+parameters:
+  docker-registry-server-p: ''
+  docker-registry-username-p: ''
+  docker-registry-password-p: ''
 
+jobs:
   steps:
   - template: azure-pipelines.core.init-dotnet-tools.yml
 
@@ -11,9 +11,9 @@ jobs:
       docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
     displayName: Init - Docker - Login
     env:
-      DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-      DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-      DOCKER_LOGIN_SERVER: $(docker-registry-server)
+      DOCKER_LOGIN_SERVER: ${{ docker-registry-server-p }}
+      DOCKER_LOGIN_USERNAME: ${{ docker-registry-username-p }}
+      DOCKER_LOGIN_PASSWORD: ${{ docker-registry-password-p }}
 
   - task: DownloadPipelineArtifact@0
     displayName: Restore - Artifacts
@@ -23,16 +23,16 @@ jobs:
 
   - script: |
       export PATH="$PATH:~/.dotnet/tools"
-      dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(docker-registry-server)/
+      dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ docker-registry-server-p }}/
     displayName: Build - Publish
 
   - script: |
       export PATH="$PATH:~/.dotnet/tools"
-      dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(docker-registry-server)/
+      dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ docker-registry-server-p }}/
     displayName: Clean - Build
 
   - script: |
       docker logout $DOCKER_LOGOUT_SERVER
     displayName: Clean - Docker - Logout
     env:
-      DOCKER_LOGOUT_SERVER: $(docker-registry-server)
+      DOCKER_LOGOUT_SERVER: ${{ docker-registry-server-p }}
