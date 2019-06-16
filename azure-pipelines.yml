@@ -56,12 +56,6 @@ stages:
         dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
       displayName: Init - .NET - Tools
 
-    - task: DownloadPipelineArtifact@0
-      displayName: Init - Artifacts - Download
-      inputs:
-        artifactName: ci-build
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-
     - script: |
         docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
       displayName: Init - Docker - Login
@@ -69,6 +63,12 @@ stages:
         DOCKER_LOGIN_USERNAME: $(docker-registry-username)
         DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
         DOCKER_LOGIN_SERVER: $(docker-registry-server)
+
+    - task: DownloadPipelineArtifact@0
+      displayName: Restore - Artifacts
+      inputs:
+        artifactName: ci-build
+        targetPath: '$(Build.ArtifactStagingDirectory)'
 
     - script: |
         export PATH="$PATH:~/.dotnet/tools"

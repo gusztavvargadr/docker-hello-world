@@ -6,6 +6,12 @@ Restored = () => {
     Input =input
   };
   DockerLoad(loadSettings);
+
+  var upSettings = new DockerComposeUpSettings {
+    DetachedMode = true
+  };
+  var service = "registry";
+  DockerComposeUp(upSettings, service);
 };
 
 Task("Build")

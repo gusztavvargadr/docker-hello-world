@@ -77,12 +77,6 @@ Task("Restore")
     EnsureDirectoryExists(buildDirectory);
     EnsureDirectoryExists(artifactsDirectory);
 
-    var upSettings = new DockerComposeUpSettings {
-      DetachedMode = true
-    };
-    var service = "registry";
-    DockerComposeUp(upSettings, service);
-
     Restored();
   });
 
