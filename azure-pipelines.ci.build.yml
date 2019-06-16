@@ -16,3 +16,4 @@ steps:
     export PATH="$PATH:~/.dotnet/tools"
     dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
   displayName: Clean - Build
+  condition: ${{ always() }}
