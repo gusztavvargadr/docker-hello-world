@@ -35,5 +35,5 @@ stages:
     - template: azure-pipelines.cd.deploy.yml
       parameters:
         dockerRegistryServer: $(docker-registry-server)
-        docker-registry-username: $(docker-registry-username)
-        docker-registry-password: $(docker-registry-password)
+        dockerRegistryUsername: $(docker-registry-username)
+        dockerRegistryPassword: $(docker-registry-password)
