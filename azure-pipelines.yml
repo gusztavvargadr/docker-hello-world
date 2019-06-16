@@ -24,12 +24,27 @@ stages:
   dependsOn: ci
 
   jobs:
+  - job: deployLocalhost
+    displayName: Deploy - Localhost
+    pool:
+      vmImage: 'ubuntu-16.04'
+    variables:
+    - group: docker-registry-localhost
+
+    steps:
+    - template: azure-pipelines.cd.deploy.yml
+      parameters:
+        dockerRegistryServer: $(docker-registry-server)
+        dockerRegistryUsername: $(docker-registry-username)
+        dockerRegistryPassword: $(docker-registry-password)
+
   - job: deployDockerHub
     displayName: Deploy - Docker Hub
     pool:
       vmImage: 'ubuntu-16.04'
     variables:
     - group: docker-registry-dockerhub
+    dependsOn: deployLocalhost
 
     steps:
     - template: azure-pipelines.cd.deploy.yml
