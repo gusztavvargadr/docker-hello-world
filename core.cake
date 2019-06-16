@@ -23,7 +23,7 @@ var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world
 Action Versioned = () => {
   Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", dockerRegistryTarget);
   Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", dockerRepository);
-  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", sourceVersion);
+  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", packageVersion);
 };
 
 Task("Version")
@@ -54,10 +54,10 @@ Task("Version")
         buildVersion = $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
       }
       if (string.IsNullOrEmpty(appVersion)) {
-        appVersion = new Semver.SemVersion(sourceSemVer.Major, sourceSemVer.Minor, sourceSemVer.Patch).ToString();
+        appVersion = sourceVersion;
       }
       if (string.IsNullOrEmpty(packageVersion)) {
-        packageVersion = appVersion;
+        packageVersion = sourceVersion;
       }
 
       Information($"Source: '{sourceVersion}'.");
@@ -106,7 +106,7 @@ private string GetDockerImageSource(string tag = null) {
 
 private string GetDockerImageTarget(string tag = null) {
   if (string.IsNullOrEmpty(tag)) {
-    tag = sourceVersion;
+    tag = packageVersion;
   }
 
   return $"{dockerRegistryTarget}{dockerRepository}:{tag}";
