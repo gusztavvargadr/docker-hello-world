@@ -17,23 +17,23 @@ stages:
       vmImage: 'ubuntu-16.04'
 
     steps:
-    - template: azure-pipelines.ci.yml
+    - template: azure-pipelines.ci.build.yml
 
 - stage: cd
   displayName: CD
-  variables:
-  - group: docker-registry-dockerhub
   dependsOn: ci
 
   jobs:
-  - job: deploy
-    displayName: Deploy
+  - job: deploy_dockerhub
+    displayName: Deploy - Docker Hub
     pool:
       vmImage: 'ubuntu-16.04'
+    variables:
+    - group: docker-registry-dockerhub
 
     steps:
     - template: azure-pipelines.cd.deploy.yml
       parameters:
-        docker-registry-server-p: $(docker-registry-server)
-        docker-registry-username-p: $(docker-registry-username)
-        docker-registry-password-p: $(docker-registry-password)
+        docker-registry-server: $(docker-registry-server)
+        docker-registry-username: $(docker-registry-username)
+        docker-registry-password: $(docker-registry-password)
