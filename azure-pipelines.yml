@@ -21,7 +21,6 @@ stages:
 
 - stage: cd
   displayName: CD
-  dependsOn: ci
 
   jobs:
   - job: deployLocalhost
