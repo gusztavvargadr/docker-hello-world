@@ -29,6 +29,14 @@ stages:
       vmImage: 'ubuntu-16.04'
     variables:
     - group: docker-registry-localhost
+    strategy:
+      matrix:
+        semver:
+          package-version: ''
+        rc:
+          package-version: 'rc'
+        latest:
+          package-version: 'latest'
 
     steps:
     - template: azure-pipelines.cd.deploy.yml

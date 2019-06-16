@@ -3,7 +3,7 @@ service: docker
 component: hello-world
 
 machines:
-  workstation:
+  build:
     box: <%= ENV['VAGRANT_BOX_DOCKER_LINUX'] || 'gusztavvargadr/docker-linux' %>
     providers:
       virtualbox:
