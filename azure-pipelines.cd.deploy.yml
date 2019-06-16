@@ -5,10 +5,10 @@ steps:
     docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
   displayName: Init - Docker - Login
   env:
-    DOCKER_LOGIN_SERVER: $(dockerRegistryServer)
-    DOCKER_LOGIN_USERNAME: $(dockerRegistryUsername)
-    DOCKER_LOGIN_PASSWORD: $(dockerRegistryPassword)
-  condition: and(succeeded(), ne(variables['dockerRegistryUsername'], ''))
+    DOCKER_LOGIN_SERVER: $(docker-registry-server)
+    DOCKER_LOGIN_USERNAME: $(docker-registry-username)
+    DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
+  condition: and(succeeded(), ne(variables['docker-registry-username'], ''))
 
 - task: DownloadPipelineArtifact@0
   displayName: Restore - Artifacts
@@ -18,12 +18,12 @@ steps:
 
 - script: |
     export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(dockerRegistryServer)/
+    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(docker-registry-server)/
   displayName: Build - Publish
 
 - script: |
     export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(dockerRegistryServer)/
+    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(docker-registry-server)/
   displayName: Clean - Build
   condition: always()
 
@@ -31,5 +31,5 @@ steps:
     docker logout $DOCKER_LOGOUT_SERVER
   displayName: Clean - Docker - Logout
   env:
-    DOCKER_LOGOUT_SERVER: $(dockerRegistryServer)
-  condition: ne(variables['dockerRegistryUsername'], '')
+    DOCKER_LOGOUT_SERVER: $(docker-registry-server)
+  condition: ne(variables['docker-registry-username'], '')
