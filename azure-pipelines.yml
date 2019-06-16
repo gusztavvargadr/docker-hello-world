@@ -11,32 +11,7 @@ stages:
   displayName: ci
 
   jobs:
-  - job: build
-    displayName: Build
-    pool:
-      vmImage: 'ubuntu-16.04'
-
-    steps:
-    - script: |
-        dotnet tool install Cake.Tool --global --version 0.33.0
-        dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
-      displayName: Init - .NET - Tools
-
-    - script: |
-        export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
-      displayName: Build - Publish
-
-    - task: PublishPipelineArtifact@0
-      displayName: Publish - Artifacts
-      inputs:
-        artifactName: ci-build
-        targetPath: $(Build.ArtifactStagingDirectory)
-
-    - script: |
-        export PATH="$PATH:~/.dotnet/tools"
-        dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
-      displayName: Clean - Build
+  - template: azure-pipelines.ci.yml
 
 - stage: cd
   displayName: CD
