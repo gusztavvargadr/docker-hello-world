@@ -12,7 +12,7 @@ steps:
   env:
     DOCKER_LOGIN_SERVER: ${{ parameters.dockerRegistryServer }}
     DOCKER_LOGIN_USERNAME: ${{ parameters.dockerRegistryUsername }}
-    DOCKER_LOGIN_PASSWORD: ${{ paraemters.dockerRegistryPassword }}
+    DOCKER_LOGIN_PASSWORD: ${{ parameters.dockerRegistryPassword }}
 
 - task: DownloadPipelineArtifact@0
   displayName: Restore - Artifacts
