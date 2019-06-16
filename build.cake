@@ -3,38 +3,39 @@
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var settings = new DockerComposeBuildSettings {
+    var buildSettings = new DockerComposeBuildSettings {
     };
     var service = "app";
-
-    DockerComposeBuild(settings, service);
+    DockerComposeBuild(buildSettings, service);
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var settings = new DockerComposeRunSettings {
+    var runSettings = new DockerComposeRunSettings {
     };
     var service = "app";
-
-    DockerComposeRun(settings, service);
+    DockerComposeRun(runSettings, service);
   });
 
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
+    var output = buildDirectory.Path + $"/{sourceVersion}.tar";
+    var saveSettings = new DockerImageSaveSettings {
+      Output = output
+    };
+    DockerSave(saveSettings, GetDockerImageSource());
+
+    Information($"Saved '{output}'.");
   });
 
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    var settings = new DockerImagePushSettings {
-    };
-    
-    DockerPush(settings, GetDockerImage());
-  });
+    CopyFiles(buildDirectory.Path + "/**/*.tar", artifactsDirectory);
 
-Task("Default")
-  .IsDependentOn("Package");
+    Information($"Copied to '{artifactsDirectory}'.");
+  });
 
 RunTarget(target);

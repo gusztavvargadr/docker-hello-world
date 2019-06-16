@@ -1,6 +1,7 @@
 trigger:
 - master
-- feature*/*
+- feature/*
+- hotfix/*
 - refs/tags/*
 
 pr: none
@@ -8,8 +9,6 @@ pr: none
 stages:
 - stage: ci
   displayName: ci
-  variables:
-  - group: docker-registry-dockerhub
 
   jobs:
   - job: build
@@ -18,87 +17,45 @@ stages:
       vmImage: 'ubuntu-16.04'
 
     steps:
-    - script: |
-        dotnet tool install Cake.Tool --global --version 0.33.0
-      displayName: Init - .NET - Install Cake
-
-    - script: |
-        docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-      displayName: Init - Docker - Login
-      env:
-        DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-        DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-        DOCKER_LOGIN_SERVER: $(docker-registry-server)
-
-    - script: |
-        ~/.dotnet/tools/dotnet-cake build.cake --target=publish
-      displayName: Build - Publish
-
-    - task: ArchiveFiles@2
-      displayName: Artifacts - Archive - Source
-      inputs:
-        rootFolderOrFile: $(Build.SourcesDirectory)
-        includeRootFolder: false
-        archiveType: zip
-        archiveFile: '$(Build.ArtifactStagingDirectory)/source.zip'
-
-    - task: PublishPipelineArtifact@0
-      displayName: Artifacts - Publish
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-        artifactName: ci-build
-
-    - script: |
-        ~/.dotnet/tools/dotnet-cake build.cake --target=clean
-      displayName: Clean - Build
-
-    - script: |
-        docker logout $DOCKER_LOGOUT_SERVER
-      displayName: Clean - Docker - Logout
-      env:
-        DOCKER_LOGOUT_SERVER: $(docker-registry-server)
+    - template: azure-pipelines.ci.build.yml
 
 - stage: cd
   displayName: CD
-  variables:
-  - group: docker-registry-dockerhub
-  dependsOn: ci
 
   jobs:
-  - deployment: deploy
-    displayName: Deploy
+  - job: deployLocalhost
+    displayName: Deploy - Localhost
     pool:
       vmImage: 'ubuntu-16.04'
-    environment: Default
-
+    variables:
+    - group: docker-registry-localhost
     strategy:
-      runOnce:
-        deploy:
-          steps:
-          - checkout: self
+      matrix:
+        semver:
+          package-version: ''
+        rc:
+          package-version: 'rc'
+        latest:
+          package-version: 'latest'
 
-          - script: |
-              dotnet tool install Cake.Tool --global --version 0.33.0
-            displayName: Init - .NET - Install Cake
+    steps:
+    - template: azure-pipelines.cd.deploy.yml
 
-          - script: |
-              docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-            displayName: Init - Docker - Login
-            env:
-              DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-              DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-              DOCKER_LOGIN_SERVER: $(docker-registry-server)
+  - job: deployDockerHub
+    displayName: Deploy - Docker Hub
+    pool:
+      vmImage: 'ubuntu-16.04'
+    variables:
+    - group: docker-registry-dockerhub
+    strategy:
+      matrix:
+        semver:
+          package-version: ''
+        rc:
+          package-version: 'rc'
+        latest:
+          package-version: 'latest'
+    dependsOn: deployLocalhost
 
-          - script: |
-              ~/.dotnet/tools/dotnet-cake deploy.cake --target=publish
-            displayName: Build - Publish
-
-          - script: |
-              ~/.dotnet/tools/dotnet-cake deploy.cake --target=clean
-            displayName: Clean - Build
-
-          - script: |
-              docker logout $DOCKER_LOGOUT_SERVER
-            displayName: Clean - Docker - Logout
-            env:
-              DOCKER_LOGOUT_SERVER: $(docker-registry-server)
+    steps:
+    - template: azure-pipelines.cd.deploy.yml
