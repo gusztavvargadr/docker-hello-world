@@ -15,9 +15,9 @@ var sourceDirectory = Directory(Argument("source-directory", "./src"));
 var buildDirectory = Directory(Argument("build-directory", "./build"));
 var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
 
-var dockerRegistryDefault = "localhost:5000/";
-var dockerRegistrySource = Argument("docker-registry-source", dockerRegistryDefault);
-var dockerRegistryTarget = Argument("docker-registry-target", dockerRegistryDefault);
+var dockerRegistryDefault = "localhost:5000";
+var dockerRegistrySource = $"{Argument("docker-registry-source", dockerRegistryDefault)}/";
+var dockerRegistryTarget = $"{Argument("docker-registry-target", dockerRegistryDefault)}/";
 var dockerRepository = Argument("docker-repository", "gusztavvargadr/hello-world");
 
 Action Versioned = () => {
