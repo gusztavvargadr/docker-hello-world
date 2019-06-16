@@ -1,5 +1,5 @@
 parameters:
-  docker-registry-server: ''
+  dockerRegistryServer: ''
   docker-registry-username: ''
   docker-registry-password: ''
 
@@ -10,7 +10,7 @@ steps:
     docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
   displayName: Init - Docker - Login
   env:
-    DOCKER_LOGIN_SERVER: ${{ docker-registry-server }}
+    DOCKER_LOGIN_SERVER: ${{ dockerRegistryServer }}
     DOCKER_LOGIN_USERNAME: ${{ docker-registry-username }}
     DOCKER_LOGIN_PASSWORD: ${{ docker-registry-password }}
 
@@ -22,16 +22,16 @@ steps:
 
 - script: |
     export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ docker-registry-server }}/
+    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ dockerRegistryServer }}/
   displayName: Build - Publish
 
 - script: |
     export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ docker-registry-server }}/
+    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ dockerRegistryServer }}/
   displayName: Clean - Build
 
 - script: |
     docker logout $DOCKER_LOGOUT_SERVER
   displayName: Clean - Docker - Logout
   env:
-    DOCKER_LOGOUT_SERVER: ${{ docker-registry-server }}
+    DOCKER_LOGOUT_SERVER: ${{ dockerRegistryServer }}
