@@ -13,7 +13,7 @@ steps:
     DOCKER_LOGIN_SERVER: ${{ parameters.dockerRegistryServer }}
     DOCKER_LOGIN_USERNAME: ${{ parameters.dockerRegistryUsername }}
     DOCKER_LOGIN_PASSWORD: ${{ parameters.dockerRegistryPassword }}
-  condition: ${{ and(succeeded(), ne(parameters.dockerRegistryUsername, '')) }}
+  condition: and(succeeded(), ne(parameters.dockerRegistryUsername, ''))
 
 - task: DownloadPipelineArtifact@0
   displayName: Restore - Artifacts
@@ -30,11 +30,11 @@ steps:
     export PATH="$PATH:~/.dotnet/tools"
     dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ parameters.dockerRegistryServer }}/
   displayName: Clean - Build
-  condition: ${{ always() }}
+  condition: always()
 
 - script: |
     docker logout $DOCKER_LOGOUT_SERVER
   displayName: Clean - Docker - Logout
   env:
     DOCKER_LOGOUT_SERVER: ${{ parameters.dockerRegistryServer }}
-  condition: ${{ ne(parameters.dockerRegistryUsername, '') }}
+  condition: ne(parameters.dockerRegistryUsername, '')
