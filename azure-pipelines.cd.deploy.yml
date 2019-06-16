@@ -1,8 +1,3 @@
-parameters:
-  dockerRegistryServer: ''
-  dockerRegistryUsername: ''
-  dockerRegistryPassword: ''
-
 steps:
 - template: azure-pipelines.core.init-dotnet-tools.yml
 
@@ -10,10 +5,10 @@ steps:
     docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
   displayName: Init - Docker - Login
   env:
-    DOCKER_LOGIN_SERVER: ${{ parameters.dockerRegistryServer }}
-    DOCKER_LOGIN_USERNAME: ${{ parameters.dockerRegistryUsername }}
-    DOCKER_LOGIN_PASSWORD: ${{ parameters.dockerRegistryPassword }}
-  condition: and(succeeded(), ne(${{ parameters.dockerRegistryUsername }}, ''))
+    DOCKER_LOGIN_SERVER: $(dockerRegistryServer)
+    DOCKER_LOGIN_USERNAME: $(dockerRegistryUsername)
+    DOCKER_LOGIN_PASSWORD: $(dockerRegistryPassword)
+  condition: and(succeeded(), ne(variables['dockerRegistryUsername'], ''))
 
 - task: DownloadPipelineArtifact@0
   displayName: Restore - Artifacts
@@ -23,12 +18,12 @@ steps:
 
 - script: |
     export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ parameters.dockerRegistryServer }}/
+    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(dockerRegistryServer)/
   displayName: Build - Publish
 
 - script: |
     export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=${{ parameters.dockerRegistryServer }}/
+    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --docker-registry-target=$(dockerRegistryServer)/
   displayName: Clean - Build
   condition: always()
 
@@ -36,5 +31,5 @@ steps:
     docker logout $DOCKER_LOGOUT_SERVER
   displayName: Clean - Docker - Logout
   env:
-    DOCKER_LOGOUT_SERVER: ${{ parameters.dockerRegistryServer }}
-  condition: ne(${{ parameters.dockerRegistryUsername }}, '')
+    DOCKER_LOGOUT_SERVER: $(dockerRegistryServer)
+  condition: ne(variables['dockerRegistryUsername'], '')

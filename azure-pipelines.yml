@@ -33,10 +33,6 @@ stages:
 
     steps:
     - template: azure-pipelines.cd.deploy.yml
-      parameters:
-        dockerRegistryServer: $(docker-registry-server)
-        dockerRegistryUsername: $(docker-registry-username)
-        dockerRegistryPassword: $(docker-registry-password)
 
   - job: deployDockerHub
     displayName: Deploy - Docker Hub
@@ -48,7 +44,3 @@ stages:
 
     steps:
     - template: azure-pipelines.cd.deploy.yml
-      parameters:
-        dockerRegistryServer: $(docker-registry-server)
-        dockerRegistryUsername: $(docker-registry-username)
-        dockerRegistryPassword: $(docker-registry-password)
