@@ -1,4 +1,10 @@
-#load "core.cake"
+#load "./build/core.cake"
+
+Versioned = () => {
+  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", packageRegistry);
+  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
+  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", packageVersion);
+};
 
 Restored = () => {
   var input = artifactsDirectory.Path + $"/{sourceVersion}.tar";
@@ -17,14 +23,14 @@ Restored = () => {
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    DockerTag(GetDockerImageSource(), GetDockerImageTarget());
+    DockerTag(GetBuildDockerImage(), GetDeployDockerImage());
 
     if (packageVersion == "latest" && !string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      Information($"Skipping pushing '{GetDockerImageTarget()}'.");
+      Information($"Skipping pushing '{GetDeployDockerImage()}'.");
     } else {
       var pushSettings = new DockerImagePushSettings {
       };
-      DockerPush(pushSettings, GetDockerImageTarget());
+      DockerPush(pushSettings, GetDeployDockerImage());
     }
   });
 
@@ -34,12 +40,12 @@ Task("Test")
     var service = "app";
 
     if (packageVersion == "latest" && !string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      Information($"Skipping pulling '{GetDockerImageTarget()}'.");
+      Information($"Skipping pulling '{GetDeployDockerImage()}'.");
     } else {
       var removeSettings = new DockerImageRemoveSettings {
         Force = true
       };
-      DockerRemove(removeSettings, GetDockerImageTarget());
+      DockerRemove(removeSettings, GetDeployDockerImage());
 
       var pullSettings = new DockerComposePullSettings {
       };
@@ -65,7 +71,7 @@ Cleaned = () => {
   var removeSettings = new DockerImageRemoveSettings {
     Force = true
   };
-  DockerRemove(removeSettings, GetDockerImageSource());
+  DockerRemove(removeSettings, GetBuildDockerImage());
 };
 
 RunTarget(target);

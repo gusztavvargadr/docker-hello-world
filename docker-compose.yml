@@ -1,10 +1,12 @@
 version: '3'
 
 services:
+  registry:
+    build:
+      context: build
+      dockerfile: registry.Dockerfile
+    ports:
+    - "5000:5000"
   app:
     image: ${APP_IMAGE_REGISTRY}${APP_IMAGE_REPOSITORY}:${APP_IMAGE_TAG}
     build: src
-  registry:
-    image: library/registry:2.7.1
-    ports:
-    - "5000:5000"

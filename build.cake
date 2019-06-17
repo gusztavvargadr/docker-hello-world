@@ -1,4 +1,10 @@
-#load "core.cake"
+#load "./build/core.cake"
+
+Versioned = () => {
+  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", defaultPackageRegistry);
+  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
+  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", sourceVersion);
+};
 
 Task("Build")
   .IsDependentOn("Restore")
@@ -21,11 +27,11 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    var output = buildDirectory.Path + $"/{sourceVersion}.tar";
+    var output = workDirectory.Path + $"/{sourceVersion}.tar";
     var saveSettings = new DockerImageSaveSettings {
       Output = output
     };
-    DockerSave(saveSettings, GetDockerImageSource());
+    DockerSave(saveSettings, GetBuildDockerImage());
 
     Information($"Saved '{output}'.");
   });
@@ -33,9 +39,9 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    CopyFiles(buildDirectory.Path + "/**/*.tar", artifactsDirectory);
+    CopyFiles(workDirectory.Path + "/**/*.tar", artifactsDirectory);
 
-    Information($"Copied to '{artifactsDirectory}'.");
+    Information($"Copied artifacts to '{artifactsDirectory}'.");
   });
 
 RunTarget(target);

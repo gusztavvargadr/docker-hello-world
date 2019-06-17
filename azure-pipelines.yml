@@ -8,16 +8,16 @@ pr: none
 
 stages:
 - stage: ci
-  displayName: ci
+  displayName: CI
 
   jobs:
   - job: build
     displayName: Build
     pool:
-      vmImage: 'ubuntu-16.04'
+      vmImage: ubuntu-16.04
 
     steps:
-    - template: azure-pipelines.ci.build.yml
+    - template: build/azure-pipelines.ci.build.yml
 
 - stage: cd
   displayName: CD
@@ -26,36 +26,36 @@ stages:
   - job: deployLocalhost
     displayName: Deploy - Localhost
     pool:
-      vmImage: 'ubuntu-16.04'
+      vmImage: ubuntu-16.04
     variables:
     - group: docker-registry-localhost
     strategy:
       matrix:
         semver:
-          package-version: ''
+          docker-image-tag: ''
         rc:
-          package-version: 'rc'
+          docker-image-tag: 'rc'
         latest:
-          package-version: 'latest'
+          docker-image-tag: 'latest'
 
     steps:
-    - template: azure-pipelines.cd.deploy.yml
+    - template: build/azure-pipelines.cd.deploy.yml
 
   - job: deployDockerHub
     displayName: Deploy - Docker Hub
     pool:
-      vmImage: 'ubuntu-16.04'
+      vmImage: ubuntu-16.04
     variables:
     - group: docker-registry-dockerhub
     strategy:
       matrix:
         semver:
-          package-version: ''
+          docker-image-tag: ''
         rc:
-          package-version: 'rc'
+          docker-image-tag: 'rc'
         latest:
-          package-version: 'latest'
+          docker-image-tag: 'latest'
     dependsOn: deployLocalhost
 
     steps:
-    - template: azure-pipelines.cd.deploy.yml
+    - template: build/azure-pipelines.cd.deploy.yml
