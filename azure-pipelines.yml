@@ -55,7 +55,7 @@ stages:
           docker-image-tag: rc
         # latest:
         #   docker-image-tag: latest
-    dependsOn: jobDeployLocalhost
+    dependsOn: deployLocalhost
 
     steps:
     - template: build/azure-pipelines.cd.deploy.yml
