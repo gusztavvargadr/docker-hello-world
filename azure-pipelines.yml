@@ -8,11 +8,9 @@ pr: none
 
 stages:
 - stage: ci
-  displayName: CI
 
   jobs:
   - job: build
-    displayName: Build
     pool:
       vmImage: ubuntu-16.04
 
@@ -20,11 +18,9 @@ stages:
     - template: build/azure-pipelines.ci.build.yml
 
 - stage: cd
-  displayName: CD
 
   jobs:
   - job: deployLocalhost
-    displayName: Deploy - localhost
     pool:
       vmImage: ubuntu-16.04
     variables:
@@ -42,7 +38,6 @@ stages:
     - template: build/azure-pipelines.cd.deploy.yml
 
   - job: deployDockerIo
-    displayName: Deploy - docker.io
     pool:
       vmImage: ubuntu-16.04
     variables:
