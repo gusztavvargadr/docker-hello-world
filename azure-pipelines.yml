@@ -7,24 +7,24 @@ trigger:
 pr: none
 
 stages:
-- stage: ci
-  displayName: Stage CI
+- stage: stageCi
+  displayName: CI
 
   jobs:
-  - job: build
-    displayName: Job Build
+  - job: jobBuild
+    displayName: Build
     pool:
       vmImage: ubuntu-16.04
 
     steps:
     - template: build/azure-pipelines.ci.build.yml
 
-- stage: cd
-  displayName: Stage CD
+- stage: stageCd
+  displayName: CD
 
   jobs:
-  - job: deployLocalhost
-    displayName: Job Deploy - localhost
+  - job: jobDeployLocalhost
+    displayName: Deploy - localhost
     pool:
       vmImage: ubuntu-16.04
     variables:
@@ -34,15 +34,15 @@ stages:
         semver:
           docker-image-tag: ''
         rc:
-          docker-image-tag: 'rc'
-        latest:
-          docker-image-tag: 'latest'
+          docker-image-tag: rc
+        # latest:
+        #   docker-image-tag: latest
 
     steps:
     - template: build/azure-pipelines.cd.deploy.yml
 
-  - job: deployDockerIo
-    displayName: Job Deploy - docker.io
+  - job: jobDeployDockerIo
+    displayName: Deploy - docker.io
     pool:
       vmImage: ubuntu-16.04
     variables:
@@ -52,10 +52,10 @@ stages:
         semver:
           docker-image-tag: ''
         rc:
-          docker-image-tag: 'rc'
-        latest:
-          docker-image-tag: 'latest'
-    dependsOn: deployLocalhost
+          docker-image-tag: rc
+        # latest:
+        #   docker-image-tag: latest
+    dependsOn: jobDeployLocalhost
 
     steps:
     - template: build/azure-pipelines.cd.deploy.yml

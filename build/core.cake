@@ -7,7 +7,8 @@ var configuration = Argument("configuration", "Release");
 
 var sourceVersion = Argument("source-version", string.Empty);
 var buildVersion = Argument("build-version", string.Empty);
-var appVersion = Argument("app-version", string.Empty);
+var defaultAppVersion = string.Empty;
+var appVersion = Argument("app-version", defaultAppVersion);
 var packageVersion = Argument("package-version", string.Empty);
 Semver.SemVersion sourceSemVer;
 
@@ -17,7 +18,7 @@ var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"
 
 var packageName = Argument("package-name", "gusztavvargadr/hello-world");
 var defaultPackageRegistry = "localhost:5000/";
-var packageRegistry = $"{Argument("package-registry", defaultPackageRegistry)}/";
+var packageRegistry = Argument("package-registry", defaultPackageRegistry);
 
 Task("Version")
   .Does(() => {
@@ -85,7 +86,6 @@ Task("Clean")
     };
     DockerComposeDown(downSettings);
 
-    CleanDirectory(artifactsDirectory);
     CleanDirectory(workDirectory);
 
     Cleaned();

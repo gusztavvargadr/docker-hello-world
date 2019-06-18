@@ -25,13 +25,9 @@ Task("Build")
   .Does(() => {
     DockerTag(GetBuildDockerImage(), GetDeployDockerImage());
 
-    if (packageVersion == "latest" && !string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      Information($"Skipping pushing '{GetDeployDockerImage()}'.");
-    } else {
-      var pushSettings = new DockerImagePushSettings {
-      };
-      DockerPush(pushSettings, GetDeployDockerImage());
-    }
+    var pushSettings = new DockerImagePushSettings {
+    };
+    DockerPush(pushSettings, GetDeployDockerImage());
   });
 
 Task("Test")
@@ -39,18 +35,9 @@ Task("Test")
   .Does(() => {
     var service = "app";
 
-    if (packageVersion == "latest" && !string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      Information($"Skipping pulling '{GetDeployDockerImage()}'.");
-    } else {
-      var removeSettings = new DockerImageRemoveSettings {
-        Force = true
-      };
-      DockerRemove(removeSettings, GetDeployDockerImage());
-
-      var pullSettings = new DockerComposePullSettings {
-      };
-      DockerComposePull(pullSettings, service);
-    }
+    var pullSettings = new DockerComposePullSettings {
+    };
+    DockerComposePull(pullSettings, service);
 
     var runSettings = new DockerComposeRunSettings {
     };
