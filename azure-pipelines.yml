@@ -24,7 +24,7 @@ stages:
 
   jobs:
   - job: deployLocalhost
-    displayName: Deploy - Localhost
+    displayName: Deploy - localhost
     pool:
       vmImage: ubuntu-16.04
     variables:
@@ -41,12 +41,12 @@ stages:
     steps:
     - template: build/azure-pipelines.cd.deploy.yml
 
-  - job: deployDockerHub
-    displayName: Deploy - Docker Hub
+  - job: deployDockerIo
+    displayName: Deploy - docker.io
     pool:
       vmImage: ubuntu-16.04
     variables:
-    - group: docker-registry-dockerhub
+    - group: docker-registry-dockerio
     strategy:
       matrix:
         semver:
