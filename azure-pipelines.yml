@@ -7,8 +7,8 @@ trigger:
 pr: none
 
 stages:
-- stage: stageCi
-  displayName: CI
+- stage: ci
+  displayName: 'CI'
 
   jobs:
   - job: jobBuild
@@ -19,12 +19,12 @@ stages:
     steps:
     - template: build/azure-pipelines.ci.build.yml
 
-- stage: stageCd
-  displayName: CD
+- stage: cd
+  displayName: 'CD'
 
   jobs:
-  - job: jobDeployLocalhost
-    displayName: Deploy - localhost
+  - job: deployLocalhost
+    displayName: 'Deploy - localhost'
     pool:
       vmImage: ubuntu-16.04
     variables:
@@ -41,8 +41,8 @@ stages:
     steps:
     - template: build/azure-pipelines.cd.deploy.yml
 
-  - job: jobDeployDockerIo
-    displayName: Deploy - docker.io
+  - job: deployDockerIo
+    displayName: 'Deploy - docker.io'
     pool:
       vmImage: ubuntu-16.04
     variables:
