@@ -3,8 +3,8 @@ parameters:
   configuration: ''
 
 jobs:
-- job: build-${{ parameters.configuration }}
-  displayName: Build
+- job: build_${{ parameters.configuration }}
+  displayName: Build ${{ parameters.configuration }}
   pool:
     vmImage: ${{ parameters.vmImage }}
 
