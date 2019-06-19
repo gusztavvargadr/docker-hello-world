@@ -1,11 +1,5 @@
 #load "./build/core.cake"
 
-Versioned = () => {
-  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", defaultPackageRegistry);
-  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
-  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", sourceVersion);
-};
-
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {

@@ -6,11 +6,10 @@ var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
 
 var sourceVersion = Argument("source-version", string.Empty);
-var buildVersion = Argument("build-version", string.Empty);
-var defaultAppVersion = string.Empty;
-var appVersion = Argument("app-version", defaultAppVersion);
-var packageVersion = Argument("package-version", string.Empty);
 Semver.SemVersion sourceSemVer;
+var buildVersion = Argument("build-version", string.Empty);
+var appVersion = Argument("app-version", string.Empty);
+var packageVersion = Argument("package-version", string.Empty);
 
 var sourceDirectory = Directory(Argument("source-directory", "./src"));
 var workDirectory = Directory(Argument("work-directory", "./work"));
@@ -20,13 +19,15 @@ var packageName = Argument("package-name", "gusztavvargadr/hello-world");
 var defaultPackageRegistry = "localhost:5000/";
 var packageRegistry = Argument("package-registry", defaultPackageRegistry);
 
+var tags = new List<string>();
+
 Task("Version")
   .Does(() => {
     sourceVersion = !string.IsNullOrEmpty(sourceVersion) ? sourceVersion : GetSourceVersion();
+    sourceSemVer = ParseSemVer(sourceVersion);
     buildVersion = !string.IsNullOrEmpty(buildVersion) ? buildVersion : GetBuildVersion();
     appVersion = !string.IsNullOrEmpty(appVersion) ? appVersion : GetAppVersion();
     packageVersion = !string.IsNullOrEmpty(packageVersion) ? packageVersion : GetPackageVersion();
-    sourceSemVer = ParseSemVer(sourceVersion);
 
     Information($"Source: '{sourceVersion}'.");
     Information($"Build: '{buildVersion}'.");
@@ -65,7 +66,14 @@ Func<string> GetPackageVersion = () => {
   return sourceVersion;
 };
 
-Action Versioned = () => {};
+Action Versioned = () => {
+  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", packageRegistry);
+  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
+  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", packageVersion);
+
+  tags.Add(packageVersion);
+  tags.Add("rc");
+};
 
 Task("Restore")
   .IsDependentOn("Version")
@@ -97,6 +105,6 @@ private string GetBuildDockerImage() {
   return $"{defaultPackageRegistry}{packageName}:{sourceVersion}";
 }
 
-private string GetDeployDockerImage() {
-  return $"{packageRegistry}{packageName}:{packageVersion}";
+private string GetDeployDockerImage(string tag) {
+  return $"{packageRegistry}{packageName}:{tag}";
 }

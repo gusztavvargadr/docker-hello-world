@@ -1,11 +1,5 @@
 #load "./build/core.cake"
 
-Versioned = () => {
-  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", packageRegistry);
-  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
-  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", packageVersion);
-};
-
 Restored = () => {
   var input = artifactsDirectory.Path + $"/{sourceVersion}.tar";
   var loadSettings = new DockerImageLoadSettings {
@@ -23,11 +17,17 @@ Restored = () => {
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    DockerTag(GetBuildDockerImage(), GetDeployDockerImage());
+    if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
+      tags.Add("latest");
+    }
 
-    var pushSettings = new DockerImagePushSettings {
-    };
-    DockerPush(pushSettings, GetDeployDockerImage());
+    foreach (var tag in tags) {
+      DockerTag(GetBuildDockerImage(), GetDeployDockerImage(tag));
+
+      var pushSettings = new DockerImagePushSettings {
+      };
+      DockerPush(pushSettings, GetDeployDockerImage(tag));
+    }
   });
 
 Task("Test")
@@ -35,13 +35,17 @@ Task("Test")
   .Does(() => {
     var service = "app";
 
-    var pullSettings = new DockerComposePullSettings {
-    };
-    DockerComposePull(pullSettings, service);
+    foreach (var tag in tags) {
+      Environment.SetEnvironmentVariable("APP_IMAGE_TAG", tag);
 
-    var runSettings = new DockerComposeRunSettings {
-    };
-    DockerComposeRun(runSettings, service);
+      var pullSettings = new DockerComposePullSettings {
+      };
+      DockerComposePull(pullSettings, service);
+
+      var runSettings = new DockerComposeRunSettings {
+      };
+      DockerComposeRun(runSettings, service);
+    }
   });
 
 Task("Package")
@@ -59,6 +63,10 @@ Cleaned = () => {
     Force = true
   };
   DockerRemove(removeSettings, GetBuildDockerImage());
+
+  foreach (var tag in tags) {
+    DockerRemove(removeSettings, GetDeployDockerImage(tag));
+  }
 };
 
 RunTarget(target);

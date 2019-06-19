@@ -29,14 +29,6 @@ stages:
       vmImage: ubuntu-16.04
     variables:
     - group: docker-registry-localhost
-    strategy:
-      matrix:
-        semver:
-          docker-image-tag: ''
-        rc:
-          docker-image-tag: rc
-        # latest:
-        #   docker-image-tag: latest
 
     steps:
     - template: build/azure-pipelines.cd.deploy.yml
@@ -47,14 +39,6 @@ stages:
       vmImage: ubuntu-16.04
     variables:
     - group: docker-registry-dockerio
-    strategy:
-      matrix:
-        semver:
-          docker-image-tag: ''
-        rc:
-          docker-image-tag: rc
-        # latest:
-        #   docker-image-tag: latest
     dependsOn: deployLocalhost
 
     steps:
