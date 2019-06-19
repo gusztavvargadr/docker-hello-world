@@ -11,13 +11,10 @@ stages:
   displayName: CI
 
   jobs:
-  - job: build
-    displayName: Build
-    pool:
+  - template: build/azure-pipelines.ci.build.yml
+    parameters:
       vmImage: ubuntu-16.04
-
-    steps:
-    - template: build/azure-pipelines.ci.build.yml
+      configuration: amd64
 
 - stage: cd
   displayName: CD

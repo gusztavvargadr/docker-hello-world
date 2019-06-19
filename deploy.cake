@@ -1,14 +1,15 @@
 #load "./build/core.cake"
 
 Restored = () => {
-  var input = artifactsDirectory.Path + $"/{sourceVersion}.tar";
+  var input = artifactsDirectory.Path + $"/{sourceVersion}-{configuration}.tar";
   var loadSettings = new DockerImageLoadSettings {
     Input =input
   };
   DockerLoad(loadSettings);
 
   var upSettings = new DockerComposeUpSettings {
-    DetachedMode = true
+    DetachedMode = true,
+    WorkingDirectory = workDirectory
   };
   var service = "registry";
   DockerComposeUp(upSettings, service);
@@ -18,7 +19,7 @@ Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
     if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      tags.Add("latest");
+      tags.Add($"latest-{configuration}");
     }
 
     foreach (var tag in tags) {
@@ -39,10 +40,12 @@ Task("Test")
       Environment.SetEnvironmentVariable("APP_IMAGE_TAG", tag);
 
       var pullSettings = new DockerComposePullSettings {
+        WorkingDirectory = workDirectory
       };
       DockerComposePull(pullSettings, service);
 
       var runSettings = new DockerComposeRunSettings {
+        WorkingDirectory = workDirectory
       };
       DockerComposeRun(runSettings, service);
     }

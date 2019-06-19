@@ -1,19 +1,29 @@
-steps:
-- template: azure-pipelines.core.init-dotnet-tools.yml
+parameters:
+  vmImage: ''
+  configuration: ''
 
-- script: |
-    export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
-  displayName: Build - Publish
+jobs:
+- job: build-${{ parameters.configuration }}
+  displayName: Build
+  pool:
+    vmImage: ${{ parameters.vmImage }}
 
-- task: PublishPipelineArtifact@0
-  displayName: Publish - Artifacts
-  inputs:
-    artifactName: ci-build
-    targetPath: $(Build.ArtifactStagingDirectory)
+  steps:
+  - template: azure-pipelines.core.init-dotnet-tools.yml
 
-- script: |
-    export PATH="$PATH:~/.dotnet/tools"
-    dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
-  displayName: Clean - Build
-  condition: always()
+  - script: |
+      export PATH="$PATH:~/.dotnet/tools"
+      dotnet cake build.cake --target=publish --configuration=${{ parameters.configuration}} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+    displayName: Build - Publish
+
+  - task: PublishPipelineArtifact@0
+    displayName: Publish - Artifacts
+    inputs:
+      artifactName: ci-build
+      targetPath: $(Build.ArtifactStagingDirectory)
+
+  - script: |
+      export PATH="$PATH:~/.dotnet/tools"
+      dotnet cake build.cake --target=clean --configuration=${{ parameters.configuration}} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+    displayName: Clean - Build
+    condition: always()

@@ -3,7 +3,7 @@
 #addin "nuget:?package=semver&version=2.0.4"
 
 var target = Argument("target", "Publish");
-var configuration = Argument("configuration", "Release");
+var configuration = Argument("configuration", "amd64");
 
 var sourceVersion = Argument("source-version", string.Empty);
 Semver.SemVersion sourceSemVer;
@@ -28,6 +28,7 @@ Task("Version")
     buildVersion = !string.IsNullOrEmpty(buildVersion) ? buildVersion : GetBuildVersion();
     appVersion = !string.IsNullOrEmpty(appVersion) ? appVersion : GetAppVersion();
     packageVersion = !string.IsNullOrEmpty(packageVersion) ? packageVersion : GetPackageVersion();
+    packageVersion += $"-{configuration}";
 
     Information($"Source: '{sourceVersion}'.");
     Information($"Build: '{buildVersion}'.");
@@ -72,7 +73,7 @@ Action Versioned = () => {
   Environment.SetEnvironmentVariable("APP_IMAGE_TAG", packageVersion);
 
   tags.Add(packageVersion);
-  tags.Add("rc");
+  tags.Add($"rc-{configuration}");
 };
 
 Task("Restore")
@@ -80,6 +81,8 @@ Task("Restore")
   .Does(() => {
     EnsureDirectoryExists(workDirectory);
     EnsureDirectoryExists(artifactsDirectory);
+
+    CopyFiles(sourceDirectory.Path + $"/{configuration}/**/*.*", workDirectory);
 
     Restored();
   });
@@ -90,7 +93,8 @@ Task("Clean")
   .IsDependentOn("Version")
   .Does(() => {
     var downSettings = new DockerComposeDownSettings {
-      Rmi = "all"
+      Rmi = "all",
+      WorkingDirectory = workDirectory
     };
     DockerComposeDown(downSettings);
 
@@ -102,7 +106,7 @@ Task("Clean")
 Action Cleaned = () => {};
 
 private string GetBuildDockerImage() {
-  return $"{defaultPackageRegistry}{packageName}:{sourceVersion}";
+  return $"{defaultPackageRegistry}{packageName}:{sourceVersion}-{configuration}";
 }
 
 private string GetDeployDockerImage(string tag) {
