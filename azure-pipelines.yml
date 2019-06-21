@@ -11,32 +11,30 @@ stages:
   displayName: CI
 
   jobs:
-  - template: build/azure-pipelines.ci.build.yml
+  - template: build/azure-pipelines.ci.yml
     parameters:
+      name: Linux
       vmImage: ubuntu-16.04
       configuration: amd64
+
+  - template: build/azure-pipelines.ci.yml
+    parameters:
+      name: Linux
+      vmImage: windows-2019
+      configuration: windows-amd64
 
 - stage: cd
   displayName: CD
 
   jobs:
-  - job: deployLocalhost
-    displayName: Deploy - localhost
-    pool:
+  - template: build/azure-pipelines.cd.yml
+    parameters:
+      name: Linux
       vmImage: ubuntu-16.04
-    variables:
-    - group: docker-registry-localhost
+      configuration: amd64
 
-    steps:
-    - template: build/azure-pipelines.cd.deploy.yml
-
-  - job: deployDockerIo
-    displayName: Deploy - docker.io
-    pool:
-      vmImage: ubuntu-16.04
-    variables:
-    - group: docker-registry-dockerio
-    dependsOn: deployLocalhost
-
-    steps:
-    - template: build/azure-pipelines.cd.deploy.yml
+  - template: build/azure-pipelines.cd.yml
+    parameters:
+      name: Linux
+      vmImage: windows-2019
+      configuration: windows-amd64

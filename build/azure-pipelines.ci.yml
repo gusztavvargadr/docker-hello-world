@@ -1,9 +1,10 @@
 parameters:
+  name: ''
   vmImage: ''
   configuration: ''
 
 jobs:
-- job: build_${{ parameters.configuration }}
+- job: build${{ parameters.name }}
   displayName: Build ${{ parameters.configuration }}
   pool:
     vmImage: ${{ parameters.vmImage }}
@@ -13,17 +14,17 @@ jobs:
 
   - script: |
       export PATH="$PATH:~/.dotnet/tools"
-      dotnet cake build.cake --target=publish --configuration=${{ parameters.configuration}} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+      dotnet cake build.cake --target=publish --configuration=${{ parameters.configuration }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
     displayName: Build - Publish
 
   - task: PublishPipelineArtifact@0
     displayName: Publish - Artifacts
     inputs:
-      artifactName: ci-build
+      artifactName: ci-build-${{ parameters.configuration }}
       targetPath: $(Build.ArtifactStagingDirectory)
 
   - script: |
       export PATH="$PATH:~/.dotnet/tools"
-      dotnet cake build.cake --target=clean --configuration=${{ parameters.configuration}} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+      dotnet cake build.cake --target=clean --configuration=${{ parameters.configuration }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
     displayName: Clean - Build
     condition: always()

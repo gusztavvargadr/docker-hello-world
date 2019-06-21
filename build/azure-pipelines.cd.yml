@@ -1,0 +1,30 @@
+parameters:
+  name: ''
+  vmImage: ''
+  configuration: ''
+
+jobs:
+  - job: deployLocalhost${{ parameters.name }}
+    displayName: Deploy - localhost - ${{ parameters.configuration }}
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    variables:
+    - group: docker-registry-localhost
+
+    steps:
+    - template: build/azure-pipelines.cd.deploy.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+
+  - job: deployDockerIo${{ parameters.name }}
+    displayName: Deploy - docker.io - ${{ parameters.configuration }}
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    variables:
+    - group: docker-registry-dockerio
+    dependsOn: deployLocalhost${{ parameters.name }}
+
+    steps:
+    - template: build/azure-pipelines.cd.deploy.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
