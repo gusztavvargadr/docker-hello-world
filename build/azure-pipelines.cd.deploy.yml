@@ -8,6 +8,7 @@ steps:
 
 - script: |
     docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
+    docker login --username %DOCKER_LOGIN_USERNAME% --password %DOCKER_LOGIN_PASSWORD% %DOCKER_LOGIN_SERVER%
   displayName: Init - Docker - Login
   env:
     DOCKER_LOGIN_SERVER: $(docker-registry-server)
@@ -34,6 +35,7 @@ steps:
 
 - script: |
     docker logout $DOCKER_LOGOUT_SERVER
+    docker logout %DOCKER_LOGOUT_SERVER%
   displayName: Clean - Docker - Logout
   env:
     DOCKER_LOGOUT_SERVER: $(docker-registry-server)
