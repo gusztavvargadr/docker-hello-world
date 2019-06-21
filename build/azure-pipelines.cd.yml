@@ -12,7 +12,7 @@ jobs:
     - group: docker-registry-localhost
 
     steps:
-    - template: build/azure-pipelines.cd.deploy.yml
+    - template: azure-pipelines.cd.deploy.yml
       parameters:
         configuration: ${{ parameters.configuration }}
 
@@ -25,6 +25,6 @@ jobs:
     dependsOn: deployLocalhost${{ parameters.name }}
 
     steps:
-    - template: build/azure-pipelines.cd.deploy.yml
+    - template: azure-pipelines.cd.deploy.yml
       parameters:
         configuration: ${{ parameters.configuration }}
