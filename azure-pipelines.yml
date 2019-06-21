@@ -19,7 +19,7 @@ stages:
 
   - template: build/azure-pipelines.ci.yml
     parameters:
-      name: Linux
+      name: Windows
       vmImage: windows-2019
       configuration: windows-amd64
 
@@ -35,6 +35,6 @@ stages:
 
   - template: build/azure-pipelines.cd.yml
     parameters:
-      name: Linux
+      name: Windows
       vmImage: windows-2019
       configuration: windows-amd64
