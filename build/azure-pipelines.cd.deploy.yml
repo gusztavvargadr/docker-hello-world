@@ -2,16 +2,17 @@ parameters:
   name: ''
   vmImage: ''
   configuration: ''
+  dockerRegistryServiceConnection: ''
 
 steps:
 - template: azure-pipelines.core.init-dotnet-tools.yml
 
-- task: Docker@2
-  inputs:
-    command: login
-    containerRegistry: $(docker-registry-service-connection)
-  displayName: Init - Docker - Login
-  condition: and(succeeded(), ne(variables['docker-registry-service-connection'], ''))
+- ${{ if parameters.dockerRegistryServiceConnection }}:
+  - task: Docker@2
+    inputs:
+      command: login
+      containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
+    displayName: Init - Docker - Login
 
 - task: DownloadPipelineArtifact@0
   displayName: Restore - Artifacts
@@ -30,9 +31,10 @@ steps:
   displayName: Clean - Build
   condition: always()
 
-- task: Docker@2
-  inputs:
-    command: logout
-    containerRegistry: $(docker-registry-service-connection)
-  displayName: Clean - Docker - Logout
-  condition: ne(variables['docker-registry-service-connection'], '')
+- ${{ if parameters.dockerRegistryServiceConnection }}:
+  - task: Docker@2
+    inputs:
+      command: logout
+      containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
+    displayName: Clean - Docker - Logout
+    condition: always()
