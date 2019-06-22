@@ -1,6 +1,5 @@
 parameters:
   name: ''
-  displayName: ''
   vmImage: ''
   configuration: ''
   dockerRegistryServiceConnection: ''
@@ -8,7 +7,7 @@ parameters:
 
 jobs:
   - job: deploy${{ parameters.name }}
-    displayName: Deploy ${{ parameters.displayName }}
+    displayName: Deploy ${{ parameters.configuration }}
     pool:
       vmImage: ${{ parameters.vmImage }}
 

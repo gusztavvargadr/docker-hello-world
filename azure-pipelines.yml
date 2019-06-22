@@ -14,14 +14,12 @@ stages:
   - template: build/azure-pipelines.build.yml
     parameters:
       name: Linux
-      displayName: amd64
       vmImage: ubuntu-16.04
       configuration: amd64
 
   - template: build/azure-pipelines.build.yml
     parameters:
       name: Windows
-      displayName: windows-amd64
       vmImage: windows-2019
       configuration: windows-amd64
 
@@ -34,7 +32,6 @@ stages:
   - template: build/azure-pipelines.deploy.yml
     parameters:
       name: LinuxLocalhost
-      displayName: amd64 localhost
       vmImage: ubuntu-16.04
       configuration: amd64
       dockerRegistryServiceConnection: ''
@@ -42,7 +39,6 @@ stages:
   - template: build/azure-pipelines.deploy.yml
     parameters:
       name: WindowsLocalhost
-      displayName: windows-amd64 localhost
       vmImage: windows-2019
       configuration: windows-amd64
       dockerRegistryServiceConnection: ''
@@ -56,7 +52,6 @@ stages:
   - template: build/azure-pipelines.deploy.yml
     parameters:
       name: LinuxDockerIo
-      displayName: amd64 dockerio
       vmImage: ubuntu-16.04
       configuration: amd64
       dockerRegistryServiceConnection: docker-registry-dockerio
@@ -64,7 +59,6 @@ stages:
   - template: build/azure-pipelines.deploy.yml
     parameters:
       name: WindowsDockerIo
-      displayName: windows-amd64 dockerio
       vmImage: windows-2019
       configuration: windows-amd64
       dockerRegistryServiceConnection: docker-registry-dockerio
