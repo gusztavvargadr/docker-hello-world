@@ -1,30 +1,29 @@
 parameters:
-  name: ''
-  vmImage: ''
-  configuration: ''
+  configuratons: []
 
 jobs:
-- job: build${{ parameters.name }}
-  displayName: Build ${{ parameters.configuration }}
-  pool:
-    vmImage: ${{ parameters.vmImage }}
+- ${{ each configuration in parameters.configurations }}
+  - job: build${{ configuration.buildName }}
+    displayName: Build ${{ configuration.name }}
+    pool:
+      vmImage: ${{ configuration.vmImage }}
 
-  steps:
-  - template: azure-pipelines.core.init-dotnet-tools.yml
-    parameters:
-      vmImage: ${{ parameters.vmImage }}
+    steps:
+    - template: azure-pipelines.core.init-dotnet-tools.yml
+      parameters:
+        vmImage: ${{ configuration.vmImage }}
 
-  - script: |
-      dotnet cake build.cake --target=publish --configuration=${{ parameters.configuration }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
-    displayName: Build - Publish
+    - script: |
+        dotnet cake build.cake --target=publish --configuration=${{ configuration.name }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+      displayName: Build - Publish
 
-  - task: PublishPipelineArtifact@0
-    displayName: Publish - Artifacts
-    inputs:
-      artifactName: build-${{ parameters.configuration }}
-      targetPath: $(Build.ArtifactStagingDirectory)
+    - task: PublishPipelineArtifact@0
+      displayName: Publish - Artifacts
+      inputs:
+        artifactName: build-${{ configuration.name }}
+        targetPath: $(Build.ArtifactStagingDirectory)
 
-  - script: |
-      dotnet cake build.cake --target=clean --configuration=${{ parameters.configuration }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
-    displayName: Clean - Build
-    condition: always()
+    - script: |
+        dotnet cake build.cake --target=clean --configuration=${{ configuration.name }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+      displayName: Clean - Build
+      condition: always()

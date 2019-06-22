@@ -13,15 +13,13 @@ stages:
   jobs:
   - template: build/azure-pipelines.build.yml
     parameters:
-      name: Linux
-      vmImage: ubuntu-16.04
-      configuration: amd64
-
-  - template: build/azure-pipelines.build.yml
-    parameters:
-      name: Windows
-      vmImage: windows-2019
-      configuration: windows-amd64
+      configurations:
+        - name: amd64
+          jobName: Linux
+          vmImage: ubuntu-16.04
+        - name: windows-amd64
+          jobName: Windows
+          vmImage: windows-2019
 
 - stage: deployLocalhost
   displayName: Deploy - localhost
