@@ -1,11 +1,12 @@
 parameters:
   name: ''
+  displayName: ''
   vmImage: ''
   configuration: ''
 
 jobs:
 - job: build${{ parameters.name }}
-  displayName: Build ${{ parameters.configuration }}
+  displayName: Build ${{ parameters.displayName }}
   pool:
     vmImage: ${{ parameters.vmImage }}
 
@@ -20,7 +21,7 @@ jobs:
   - task: PublishPipelineArtifact@0
     displayName: Publish - Artifacts
     inputs:
-      artifactName: ci-build-${{ parameters.configuration }}
+      artifactName: build-${{ parameters.configuration }}
       targetPath: $(Build.ArtifactStagingDirectory)
 
   - script: |
