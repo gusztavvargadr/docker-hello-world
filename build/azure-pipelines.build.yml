@@ -3,7 +3,7 @@ parameters:
 
 jobs:
 - ${{ each configuration in parameters.configurations }}:
-  - job: build${{ configuration.buildName }}
+  - job: build${{ configuration.job }}
     displayName: Build ${{ configuration.name }}
     pool:
       vmImage: ${{ configuration.vmImage }}
