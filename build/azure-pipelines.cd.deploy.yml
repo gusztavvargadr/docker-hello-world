@@ -6,15 +6,12 @@ parameters:
 steps:
 - template: azure-pipelines.core.init-dotnet-tools.yml
 
-- script: |
-    docker login --username $DOCKER_LOGIN_USERNAME --password $DOCKER_LOGIN_PASSWORD $DOCKER_LOGIN_SERVER
-    docker login --username %DOCKER_LOGIN_USERNAME% --password %DOCKER_LOGIN_PASSWORD% %DOCKER_LOGIN_SERVER%
+- task: Docker@2
+  inputs:
+    command: login
+    containerRegistry: $(docker-registry-service-connection)
   displayName: Init - Docker - Login
-  env:
-    DOCKER_LOGIN_SERVER: $(docker-registry-server)
-    DOCKER_LOGIN_USERNAME: $(docker-registry-username)
-    DOCKER_LOGIN_PASSWORD: $(docker-registry-password)
-  condition: and(succeeded(), ne(variables['docker-registry-username'], ''))
+  condition: and(succeeded(), ne(variables['docker-registry-service-connection'], ''))
 
 - task: DownloadPipelineArtifact@0
   displayName: Restore - Artifacts
@@ -33,10 +30,9 @@ steps:
   displayName: Clean - Build
   condition: always()
 
-- script: |
-    docker logout $DOCKER_LOGOUT_SERVER
-    docker logout %DOCKER_LOGOUT_SERVER%
+- task: Docker@2
+  inputs:
+    command: logout
+    containerRegistry: $(docker-registry-service-connection)
   displayName: Clean - Docker - Logout
-  env:
-    DOCKER_LOGOUT_SERVER: $(docker-registry-server)
-  condition: ne(variables['docker-registry-username'], '')
+  condition: ne(variables['docker-registry-service-connection'], '')
