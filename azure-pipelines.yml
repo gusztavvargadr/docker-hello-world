@@ -31,14 +31,14 @@ stages:
   jobs:
   - template: build/azure-pipelines.deploy.yml
     parameters:
-      name: LinuxLocalhost
+      name: Linux
       vmImage: ubuntu-16.04
       configuration: amd64
       dockerRegistryServiceConnection: ''
 
   - template: build/azure-pipelines.deploy.yml
     parameters:
-      name: WindowsLocalhost
+      name: Windows
       vmImage: windows-2019
       configuration: windows-amd64
       dockerRegistryServiceConnection: ''
@@ -51,14 +51,14 @@ stages:
   jobs:
   - template: build/azure-pipelines.deploy.yml
     parameters:
-      name: LinuxDockerIo
+      name: Linux
       vmImage: ubuntu-16.04
       configuration: amd64
       dockerRegistryServiceConnection: docker-registry-dockerio
 
   - template: build/azure-pipelines.deploy.yml
     parameters:
-      name: WindowsDockerIo
+      name: Windows
       vmImage: windows-2019
       configuration: windows-amd64
       dockerRegistryServiceConnection: docker-registry-dockerio
