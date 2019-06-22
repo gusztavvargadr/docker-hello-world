@@ -1,5 +1,5 @@
 parameters:
-  configuratons: []
+  configurations: []
 
 jobs:
 - ${{ each configuration in parameters.configurations }}:
