@@ -28,12 +28,10 @@ jobs:
         targetPath: $(Build.ArtifactStagingDirectory)
 
     - script: |
-        export PATH="$PATH:~/.dotnet/tools"
         dotnet cake deploy.cake --configuration=${{ parameters.configuration }} --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Build - Publish
 
     - script: |
-        export PATH="$PATH:~/.dotnet/tools"
         dotnet cake deploy.cake --target=clean --configuration=${{ parameters.configuration }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Clean - Build
       condition: always()

@@ -6,8 +6,5 @@ steps:
 
 - bash: |
     echo "##vso[task.setvariable variable=PATH;]$PATH:~/.dotnet/tools"
-  displayName: Diagnostics - Export - 1
-
-- bash: |
-    dotnet gitversion
-  displayName: Diagnostics - Export - 2
+  displayName: Init - Path
+  condition: eq(variables['vmImage'], 'ubuntu-16.04')
