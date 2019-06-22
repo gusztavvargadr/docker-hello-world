@@ -1,20 +1,18 @@
 parameters:
-  name: ''
-  vmImage: ''
-  configuration: ''
+  configurations: []
   dockerRegistryServiceConnection: ''
 
-
 jobs:
-  - job: deploy${{ parameters.name }}
-    displayName: Deploy ${{ parameters.configuration }}
+- ${{ each configuration in parameters.configurations }}:
+  - job: deploy${{ configuration.job }}
+    displayName: Deploy ${{ configuration.name }}
     pool:
-      vmImage: ${{ parameters.vmImage }}
+      vmImage: ${{ configuration.vmImage }}
 
     steps:
     - template: azure-pipelines.core.init-dotnet-tools.yml
       parameters:
-        vmImage: ${{ parameters.vmImage }}
+        vmImage: ${{ configuration.vmImage }}
 
     - ${{ if parameters.dockerRegistryServiceConnection }}:
       - task: Docker@2
@@ -26,15 +24,15 @@ jobs:
     - task: DownloadPipelineArtifact@0
       displayName: Restore - Artifacts
       inputs:
-        artifactName: build-${{ parameters.configuration }}
+        artifactName: build-${{ configuration.name }}
         targetPath: $(Build.ArtifactStagingDirectory)
 
     - script: |
-        dotnet cake deploy.cake --configuration=${{ parameters.configuration }} --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
+        dotnet cake deploy.cake --configuration=${{ configuration.name }} --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Build - Publish
 
     - script: |
-        dotnet cake deploy.cake --target=clean --configuration=${{ parameters.configuration }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
+        dotnet cake deploy.cake --target=clean --configuration=${{ configuration.name }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Clean - Build
       condition: always()
 
