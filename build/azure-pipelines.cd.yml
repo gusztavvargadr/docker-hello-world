@@ -15,7 +15,7 @@ jobs:
     - template: azure-pipelines.cd.deploy.yml
       parameters:
         configuration: ${{ parameters.configuration }}
-        dockerRegistryServiceConnection: $(docker-registry-service-connection)
+        dockerRegistryServiceConnection: ''
 
   - job: deployDockerIo${{ parameters.name }}
     displayName: Deploy - docker.io - ${{ parameters.configuration }}
@@ -29,4 +29,4 @@ jobs:
     - template: azure-pipelines.cd.deploy.yml
       parameters:
         configuration: ${{ parameters.configuration }}
-        dockerRegistryServiceConnection: $(docker-registry-service-connection)
+        dockerRegistryServiceConnection: docker-registry-dockerio
