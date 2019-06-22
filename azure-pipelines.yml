@@ -31,7 +31,7 @@ stages:
   - group: docker-registry-localhost
   
   jobs:
-  - template: build/azure-pipelines.cd.yml
+  - template: build/azure-pipelines.deploy.yml
     parameters:
       name: LinuxLocalhost
       displayName: amd64 localhost
@@ -39,7 +39,7 @@ stages:
       configuration: amd64
       dockerRegistryServiceConnection: ''
 
-  - template: build/azure-pipelines.cd.yml
+  - template: build/azure-pipelines.deploy.yml
     parameters:
       name: WindowsLocalhost
       displayName: windows-amd64 localhost
@@ -53,7 +53,7 @@ stages:
   - group: docker-registry-dockerio
 
   jobs:
-  - template: build/azure-pipelines.cd.yml
+  - template: build/azure-pipelines.deploy.yml
     parameters:
       name: LinuxDockerIo
       displayName: amd64 dockerio
@@ -61,7 +61,7 @@ stages:
       configuration: amd64
       dockerRegistryServiceConnection: docker-registry-dockerio
 
-  - template: build/azure-pipelines.cd.yml
+  - template: build/azure-pipelines.deploy.yml
     parameters:
       name: WindowsDockerIo
       displayName: windows-amd64 dockerio
