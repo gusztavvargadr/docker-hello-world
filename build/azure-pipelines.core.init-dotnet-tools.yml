@@ -4,11 +4,10 @@ steps:
     dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
   displayName: Init - .NET - Tools
 
-- script: |
-    export PATH="$PATH:~/.dotnet/tools"
-    dotnet gitversion
+- bash: |
+    echo "##vso[task.setvariable variable=PATH;]$PATH:~/.dotnet/tools"
   displayName: Diagnostics - Export - 1
 
-- script: |
+- bash: |
     dotnet gitversion
   displayName: Diagnostics - Export - 2
