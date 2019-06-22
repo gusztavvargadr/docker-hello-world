@@ -2,7 +2,7 @@ parameters:
   configuratons: []
 
 jobs:
-- ${{ each configuration in parameters.configurations }}
+- ${{ each configuration in parameters.configurations }}:
   - job: build${{ configuration.buildName }}
     displayName: Build ${{ configuration.name }}
     pool:
