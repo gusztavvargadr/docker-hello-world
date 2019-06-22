@@ -11,6 +11,8 @@ jobs:
 
   steps:
   - template: azure-pipelines.core.init-dotnet-tools.yml
+    parameters:
+      vmImage: vmImage
 
   - script: |
       dotnet cake build.cake --target=publish --configuration=${{ parameters.configuration }} --artifacts-directory=$(Build.ArtifactStagingDirectory)

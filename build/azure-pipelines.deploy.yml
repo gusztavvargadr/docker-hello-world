@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - template: azure-pipelines.core.init-dotnet-tools.yml
+      parameters:
+        vmImage: vmImage
 
     - ${{ if parameters.dockerRegistryServiceConnection }}:
       - task: Docker@2
