@@ -9,7 +9,7 @@ jobs:
       vmImage: ${{ configuration.vmImage }}
 
     steps:
-    - template: azure-pipelines.core.init-dotnet-tools.yml
+    - template: azure-pipelines.core.yml
       parameters:
         vmImage: ${{ configuration.vmImage }}
 
