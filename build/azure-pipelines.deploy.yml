@@ -12,7 +12,7 @@ jobs:
     steps:
     - template: azure-pipelines.core.yml
       parameters:
-        vmImage: ${{ configuration.vmImage }}
+        os: ${{ configuration.os }}
 
     - ${{ if parameters.dockerRegistryServiceConnection }}:
       - task: Docker@2
