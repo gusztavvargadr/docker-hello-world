@@ -24,7 +24,7 @@ jobs:
     - task: DownloadPipelineArtifact@0
       displayName: Restore - Artifacts
       inputs:
-        artifactName: build-${{ configuration.os }}-${{ configuration.arch }}
+        artifactName: ${{ configuration.os }}-${{ configuration.arch }}-image
         targetPath: $(Build.ArtifactStagingDirectory)
 
     - script: |
@@ -41,7 +41,7 @@ jobs:
     - task: PublishPipelineArtifact@0
       displayName: Publish - Artifacts
       inputs:
-        artifactName: deploy-${{ configuration.os }}-${{ configuration.arch }}
+        artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry
         targetPath: $(Build.ArtifactStagingDirectory)
 
     - script: |
@@ -81,5 +81,5 @@ jobs:
     - task: DownloadPipelineArtifact@0
       displayName: Restore - Artifacts - ${{ configuration.os }}-${{ configuration.arch }}
       inputs:
-        artifactName: deploy-${{ configuration.os }}-${{ configuration.arch }}
+        artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry
         targetPath: $(Build.ArtifactStagingDirectory)
