@@ -39,13 +39,13 @@ jobs:
         rootFolderOrFile: work/registry
         archiveType: tar
         tarCompression: none
-        archiveFile: $(Build.ArtifactStagingDirectory)/registry-$(environment-name).tar
+        archiveFile: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}-registry.tar
 
     - task: PublishPipelineArtifact@0
       displayName: Publish - Artifacts
       inputs:
         artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry-$(environment-name)
-        targetPath: $(Build.ArtifactStagingDirectory)/registry-$(environment-name).tar
+        targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}-registry.tar
 
     - script: |
         dotnet cake deploy.cake --target=clean --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
