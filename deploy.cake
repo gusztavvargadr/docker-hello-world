@@ -1,7 +1,7 @@
 #load "./build/core.cake"
 
 Restored = () => {
-  var input = artifactsDirectory.Path + $"/{sourceVersion}.{configuration}.tar";
+  var input = artifactsDirectory.Path + $"/{sourceVersion}-{configuration}.tar";
   var loadSettings = new DockerImageLoadSettings {
     Input =input
   };
