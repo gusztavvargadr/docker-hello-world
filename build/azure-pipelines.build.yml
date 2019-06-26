@@ -9,7 +9,7 @@ jobs:
         ${{ configuration.os }}_${{ configuration.arch }}:
           os: ${{ configuration.os }}
           arch: ${{ configuration.arch }}
-          vmImage: ${{ configuation.vmImage }}
+          vmImage: ${{ configuration.vmImage }}
 
   displayName: Build - ${{ configuration.os }} - ${{ configuration.arch }}
   pool:
