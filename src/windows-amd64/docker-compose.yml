@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: registry.Dockerfile
     volumes:
-    - C:\registry:C:\registry
+    - .\registry:C:\registry
     ports:
     - "5000:5000"
   app:

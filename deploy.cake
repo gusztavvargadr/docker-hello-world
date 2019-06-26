@@ -1,6 +1,8 @@
 #load "./build/core.cake"
 
 Restored = () => {
+  EnsureDirectoryExists(workDirectory.Path + "/registry");
+
   var input = artifactsDirectory.Path + $"/{sourceVersion}-{configuration}.tar";
   var loadSettings = new DockerImageLoadSettings {
     Input =input
