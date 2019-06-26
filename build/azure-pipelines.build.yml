@@ -14,7 +14,7 @@ jobs:
 
   displayName: Build - $(os) - $(arch)
   pool:
-    vmImage: $(configuration.vmImage)
+    vmImage: $(vmImage)
 
   steps:
   - template: azure-pipelines.core.yml
