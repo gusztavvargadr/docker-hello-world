@@ -23,7 +23,7 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    var output = workDirectory.Path + $"/{sourceVersion}-{configuration}.tar";
+    var output = workDirectory.Path + $"/{packageVersion}.tar";
     var saveSettings = new DockerImageSaveSettings {
       Output = output
     };

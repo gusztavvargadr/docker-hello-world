@@ -7,7 +7,10 @@ jobs:
   - job: deploy_${{ configuration.os }}_${{ configuration.arch }}
     displayName: Deploy - ${{ configuration.os }} - ${{ configuration.arch }}
     pool:
-      vmImage: ${{ configuration.vmImage }}
+      ${{ if eq(configuration.os, 'linux') }}:
+        vmImage: ubuntu-16.04
+      ${{ if eq(configuration.os, 'windows') }}:
+        vmImage: windows-2019
 
     steps:
     - template: azure-pipelines.core.yml
@@ -41,7 +44,7 @@ jobs:
     - task: PublishPipelineArtifact@0
       displayName: Publish - Artifacts
       inputs:
-        artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry
+        artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry-$(environment-name)
         targetPath: $(Build.ArtifactStagingDirectory)
 
     - script: |
@@ -81,5 +84,5 @@ jobs:
     - task: DownloadPipelineArtifact@0
       displayName: Restore - Artifacts - ${{ configuration.os }}-${{ configuration.arch }}
       inputs:
-        artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry
+        artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry-$(environment-name)
         targetPath: $(Build.ArtifactStagingDirectory)

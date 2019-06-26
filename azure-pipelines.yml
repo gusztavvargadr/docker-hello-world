@@ -30,10 +30,8 @@ stages:
       configurations:
         - os: linux
           arch: amd64
-          vmImage: ubuntu-16.04
         - os: windows
           arch: amd64
-          vmImage: windows-2019
       dockerRegistryServiceConnection: ''
 
 - stage: deployDockerIo
@@ -47,8 +45,6 @@ stages:
       configurations:
         - os: linux
           arch: amd64
-          vmImage: ubuntu-16.04
         - os: windows
           arch: amd64
-          vmImage: windows-2019
       dockerRegistryServiceConnection: docker-registry-dockerio

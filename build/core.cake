@@ -28,7 +28,6 @@ Task("Version")
     buildVersion = !string.IsNullOrEmpty(buildVersion) ? buildVersion : GetBuildVersion();
     appVersion = !string.IsNullOrEmpty(appVersion) ? appVersion : GetAppVersion();
     packageVersion = !string.IsNullOrEmpty(packageVersion) ? packageVersion : GetPackageVersion();
-    packageVersion += $"-{configuration}";
 
     Information($"Source: '{sourceVersion}'.");
     Information($"Build: '{buildVersion}'.");
@@ -60,11 +59,11 @@ Func<string> GetBuildVersion = () => {
 };
 
 Func<string> GetAppVersion = () => {
-  return sourceVersion;
+  return $"{sourceVersion}-{configuration}";
 };
 
 Func<string> GetPackageVersion = () => {
-  return sourceVersion;
+  return GetAppVersion();
 };
 
 Action Versioned = () => {
@@ -106,7 +105,7 @@ Task("Clean")
 Action Cleaned = () => {};
 
 private string GetBuildDockerImage() {
-  return $"{defaultPackageRegistry}{packageName}:{sourceVersion}-{configuration}";
+  return $"{defaultPackageRegistry}{packageName}:{packageVersion}";
 }
 
 private string GetDeployDockerImage(string tag) {

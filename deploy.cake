@@ -3,7 +3,7 @@
 Restored = () => {
   EnsureDirectoryExists(workDirectory.Path + "/registry");
 
-  var input = artifactsDirectory.Path + $"/{sourceVersion}-{configuration}.tar";
+  var input = artifactsDirectory.Path + $"/{packageVersion}.tar";
   var loadSettings = new DockerImageLoadSettings {
     Input =input
   };
