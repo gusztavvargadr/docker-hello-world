@@ -16,15 +16,13 @@ stages:
       configurations:
         - os: linux
           arch: amd64
-          vmImage: ubuntu-16.04
         - os: windows
           arch: amd64
-          vmImage: windows-2019
 
 - stage: deployLocalhost
   displayName: Deploy - localhost
   variables:
-  - group: docker-registry-localhost
+  - group: environment-localhost
   
   jobs:
   - template: build/azure-pipelines.deploy.yml
@@ -41,7 +39,7 @@ stages:
 - stage: deployDockerIo
   displayName: Deploy - docker.io
   variables:
-  - group: docker-registry-dockerio
+  - group: environment-dockerio
 
   jobs:
   - template: build/azure-pipelines.deploy.yml
