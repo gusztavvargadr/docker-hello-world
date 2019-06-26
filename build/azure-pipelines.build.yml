@@ -2,36 +2,28 @@ parameters:
   configurations: []
 
 jobs:
-- job: build
+- ${{ each configuration in parameters.configurations }}:
+  - job: build_${{ configuration.os }}_${{ configuration.arch }}
+    displayName: Build - ${{ configuration.os }} - ${{ configuration.arch }}
+    pool:
+      vmImage: ${{ configuration.vmImage }}
 
-  strategy:
-    matrix:
-      ${{ each configuration in parameters.configurations }}:
-        ${{ configuration.os }}_${{ configuration.arch }}:
-          os: ${{ configuration.os }}
-          arch: ${{ configuration.arch }}
-          vmImage: ${{ configuration.vmImage }}
+    steps:
+    - template: azure-pipelines.core.yml
+      parameters:
+        os: ${{ configuration.os }}
 
-  displayName: Build
-  pool:
-    vmImage: $(vmImage)
+    - script: |
+        dotnet cake build.cake --target=publish --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+      displayName: Build - Publish
 
-  steps:
-  - template: azure-pipelines.core.yml
-    parameters:
-      os: $(os)
+    - task: PublishPipelineArtifact@0
+      displayName: Publish - Artifacts
+      inputs:
+        artifactName: build-${{ configuration.os }}-${{ configuration.arch }}
+        targetPath: $(Build.ArtifactStagingDirectory)
 
-  - script: |
-      dotnet cake build.cake --target=publish --configuration=$(os)-$(arch) --artifacts-directory=$(Build.ArtifactStagingDirectory)
-    displayName: Build - Publish
-
-  - task: PublishPipelineArtifact@0
-    displayName: Publish - Artifacts
-    inputs:
-      artifactName: build-$(os)-$(arch)
-      targetPath: $(Build.ArtifactStagingDirectory)
-
-  - script: |
-      dotnet cake build.cake --target=clean --configuration=$(os)-$(arch) --artifacts-directory=$(Build.ArtifactStagingDirectory)
-    displayName: Clean - Build
-    condition: always()
+    - script: |
+        dotnet cake build.cake --target=clean --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory)
+      displayName: Clean - Build
+      condition: always()
