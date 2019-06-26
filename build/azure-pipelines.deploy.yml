@@ -4,8 +4,8 @@ parameters:
 
 jobs:
 - ${{ each configuration in parameters.configurations }}:
-  - job: deploy${{ configuration.job }}
-    displayName: Deploy ${{ configuration.name }}
+  - job: deploy_${{ configuration.os }}_${{ configuration.arch }}
+    displayName: Deploy - ${{ configuration.os }} - ${{ configuration.arch }}
     pool:
       vmImage: ${{ configuration.vmImage }}
 
@@ -24,15 +24,15 @@ jobs:
     - task: DownloadPipelineArtifact@0
       displayName: Restore - Artifacts
       inputs:
-        artifactName: build-${{ configuration.name }}
+        artifactName: build-${{ configuration.os }}-${{ configuration.arch }}
         targetPath: $(Build.ArtifactStagingDirectory)
 
     - script: |
-        dotnet cake deploy.cake --configuration=${{ configuration.name }} --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
+        dotnet cake deploy.cake --configuration=${{ configuration.os }}-${{ configuration.arch }} --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Build - Publish
 
     - script: |
-        dotnet cake deploy.cake --target=clean --configuration=${{ configuration.name }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
+        dotnet cake deploy.cake --target=clean --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Clean - Build
       condition: always()
 
