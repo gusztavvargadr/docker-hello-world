@@ -12,7 +12,7 @@ jobs:
           arch: ${{ configuration.arch }}
           vmImage: ${{ configuration.vmImage }}
 
-  displayName: Build - $(os) - $(arch)
+  displayName: Build
   pool:
     vmImage: $(vmImage)
 

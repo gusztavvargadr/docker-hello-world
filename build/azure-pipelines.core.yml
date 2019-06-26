@@ -1,6 +1,3 @@
-parameters:
-  os: ''
-
 steps:
 - script: |
     dotnet tool install Cake.Tool --global --version 0.33.0
@@ -10,4 +7,4 @@ steps:
 - bash: |
     echo "##vso[task.setvariable variable=PATH;]$PATH:~/.dotnet/tools"
   displayName: Init - Path
-  condition: eq('${{ parameters.os }}', 'linux')
+  condition: eq($(os), 'linux')
