@@ -31,10 +31,23 @@ jobs:
         dotnet cake deploy.cake --configuration=${{ configuration.os }}-${{ configuration.arch }} --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Build - Publish
 
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: work/registry
+        archiveType: tar
+        tarCompression: none
+        archiveFile: $(Build.ArtifactStagingDirectory)/registry.tar
+
+    - task: PublishPipelineArtifact@0
+      displayName: Publish - Artifacts
+      inputs:
+        artifactName: deploy-${{ configuration.os }}-${{ configuration.arch }}
+        targetPath: $(Build.ArtifactStagingDirectory)
+
     - script: |
         dotnet cake deploy.cake --target=clean --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Clean - Build
-      condition: always()
+      condition: 'False'
 
     - ${{ if parameters.dockerRegistryServiceConnection }}:
       - task: Docker@2
@@ -68,5 +81,5 @@ jobs:
     - task: DownloadPipelineArtifact@0
       displayName: Restore - Artifacts - ${{ configuration.os }}-${{ configuration.arch }}
       inputs:
-        artifactName: build-${{ configuration.os }}-${{ configuration.arch }}
+        artifactName: deploy-${{ configuration.os }}-${{ configuration.arch }}
         targetPath: $(Build.ArtifactStagingDirectory)
