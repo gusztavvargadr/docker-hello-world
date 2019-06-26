@@ -50,7 +50,7 @@ jobs:
     vmImage: ubuntu-16.04
   dependsOn:
   - ${{ each configuration in parameters.configurations }}:
-    - job: deploy_${{ configuration.os }}_${{ configuration.arch }}
+    - deploy_${{ configuration.os }}_${{ configuration.arch }}
 
   steps:
   - template: azure-pipelines.core.yml
@@ -70,4 +70,3 @@ jobs:
       inputs:
         artifactName: build-${{ configuration.os }}-${{ configuration.arch }}
         targetPath: $(Build.ArtifactStagingDirectory)
-
