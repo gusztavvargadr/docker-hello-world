@@ -1,14 +1,42 @@
-#load "core.cake"
+#load "./build/core.cake"
+
+var tags = new List<string>();
+
+Versioned = () => {
+  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", packageRegistry);
+  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
+  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{packageVersion}-{configuration}");
+
+  tags.Add(packageVersion);
+  tags.Add("rc");
+  if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
+    tags.Add("latest");
+  }
+};
 
 Restored = () => {
-  var input = artifactsDirectory.Path + $"/{sourceVersion}.tar";
-  var loadSettings = new DockerImageLoadSettings {
-    Input =input
-  };
-  DockerLoad(loadSettings);
+  if (configuration != "manifest") {
+    GZipUncompress(artifactsDirectory.Path + "/image.tar.gz", workDirectory);
+
+    var input = workDirectory.Path + "/image.tar";
+    var loadSettings = new DockerImageLoadSettings {
+      Input =input
+    };
+    DockerLoad(loadSettings);
+  }
+
+  EnsureDirectoryExists(workDirectory.Path + "/registry");
+  Environment.SetEnvironmentVariable("REGISTRY_VOLUME_PATH", MakeAbsolute(workDirectory) + "/registry");
+
+  if (configuration == "manifest") {
+    foreach (var file in GetFiles(artifactsDirectory.Path + "/../**/registry.tar.gz")) {
+      GZipUncompress(file, workDirectory.Path + "/registry");
+    }
+  }
 
   var upSettings = new DockerComposeUpSettings {
-    DetachedMode = true
+    DetachedMode = true,
+    WorkingDirectory = sourceDirectory
   };
   var service = "registry";
   DockerComposeUp(upSettings, service);
@@ -17,14 +45,27 @@ Restored = () => {
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    DockerTag(GetDockerImageSource(), GetDockerImageTarget());
+    foreach (var tag in tags) {
+      if (configuration != "manifest") {
+        DockerTag(GetBuildDockerImage(), GetDeployDockerImage(tag));
 
-    if (packageVersion == "latest" && !string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      Information($"Skipping pushing '{GetDockerImageTarget()}'.");
-    } else {
-      var pushSettings = new DockerImagePushSettings {
-      };
-      DockerPush(pushSettings, GetDockerImageTarget());
+        var pushSettings = new DockerImagePushSettings {
+        };
+        DockerPush(pushSettings, GetDeployDockerImage(tag));
+      } else {
+        var createCommand = $"manifest create --insecure --amend {packageRegistry}{packageName}:{tag}";
+        foreach (var directory in GetDirectories(artifactsDirectory.Path + "/../*")) {
+          if (directory.GetDirectoryName() == "manifest") {
+            continue;
+          }
+
+          createCommand += $" {packageRegistry}{packageName}:{tag}-{directory.GetDirectoryName()}";
+        }
+        DockerCustomCommand(createCommand);
+
+        var pushCommand = $"manifest push --insecure {packageRegistry}{packageName}:{tag}";
+        DockerCustomCommand(pushCommand);
+      }
     }
   });
 
@@ -33,22 +74,23 @@ Task("Test")
   .Does(() => {
     var service = "app";
 
-    if (packageVersion == "latest" && !string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      Information($"Skipping pulling '{GetDockerImageTarget()}'.");
-    } else {
-      var removeSettings = new DockerImageRemoveSettings {
-        Force = true
-      };
-      DockerRemove(removeSettings, GetDockerImageTarget());
+    foreach (var tag in tags) {
+      if (configuration != "manifest") {
+        Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}-{configuration}");
+      } else {
+        Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}");
+      }
 
       var pullSettings = new DockerComposePullSettings {
+        WorkingDirectory = sourceDirectory
       };
       DockerComposePull(pullSettings, service);
-    }
 
-    var runSettings = new DockerComposeRunSettings {
-    };
-    DockerComposeRun(runSettings, service);
+      var runSettings = new DockerComposeRunSettings {
+        WorkingDirectory = sourceDirectory
+      };
+      DockerComposeRun(runSettings, service);
+    }
   });
 
 Task("Package")
@@ -59,13 +101,20 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
+    if (configuration != "manifest") {
+      GZipCompress(workDirectory.Path + "/registry", artifactsDirectory.Path + "/registry.tar.gz");
+    }
   });
 
 Cleaned = () => {
   var removeSettings = new DockerImageRemoveSettings {
     Force = true
   };
-  DockerRemove(removeSettings, GetDockerImageSource());
+  DockerRemove(removeSettings, GetBuildDockerImage());
+
+  foreach (var tag in tags.Skip(1)) {
+    DockerRemove(removeSettings, GetDeployDockerImage(tag));
+  }
 };
 
 RunTarget(target);

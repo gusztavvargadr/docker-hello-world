@@ -1,9 +1,10 @@
-#load "core.cake"
+#load "./build/core.cake"
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
     var buildSettings = new DockerComposeBuildSettings {
+      WorkingDirectory = sourceDirectory
     };
     var service = "app";
     DockerComposeBuild(buildSettings, service);
@@ -13,6 +14,7 @@ Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
     var runSettings = new DockerComposeRunSettings {
+      WorkingDirectory = sourceDirectory
     };
     var service = "app";
     DockerComposeRun(runSettings, service);
@@ -21,11 +23,11 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    var output = buildDirectory.Path + $"/{sourceVersion}.tar";
+    var output = workDirectory.Path + "/image.tar";
     var saveSettings = new DockerImageSaveSettings {
       Output = output
     };
-    DockerSave(saveSettings, GetDockerImageSource());
+    DockerSave(saveSettings, GetBuildDockerImage());
 
     Information($"Saved '{output}'.");
   });
@@ -33,9 +35,7 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    CopyFiles(buildDirectory.Path + "/**/*.tar", artifactsDirectory);
-
-    Information($"Copied to '{artifactsDirectory}'.");
+    GZipCompress(workDirectory, artifactsDirectory.Path + "/image.tar.gz", GetFiles(workDirectory.Path + "/image.tar"));
   });
 
 RunTarget(target);

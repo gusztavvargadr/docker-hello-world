@@ -7,55 +7,44 @@ trigger:
 pr: none
 
 stages:
-- stage: ci
-  displayName: ci
+- stage: build
+  displayName: Build
 
   jobs:
-  - job: build
-    displayName: Build
-    pool:
-      vmImage: 'ubuntu-16.04'
+  - template: build/azure-pipelines.build.yml
+    parameters:
+      configurations:
+        - os: linux
+          arch: amd64
+        - os: windows
+          arch: amd64
 
-    steps:
-    - template: azure-pipelines.ci.build.yml
+- stage: deployLocalhost
+  displayName: Deploy - localhost
+  variables:
+  - group: environment-localhost
+  
+  jobs:
+  - template: build/azure-pipelines.deploy.yml
+    parameters:
+      configurations:
+        - os: linux
+          arch: amd64
+        - os: windows
+          arch: amd64
+      dockerRegistryServiceConnection: ''
 
-- stage: cd
-  displayName: CD
+- stage: deployDockerIo
+  displayName: Deploy - docker.io
+  variables:
+  - group: environment-dockerio
 
   jobs:
-  - job: deployLocalhost
-    displayName: Deploy - Localhost
-    pool:
-      vmImage: 'ubuntu-16.04'
-    variables:
-    - group: docker-registry-localhost
-    strategy:
-      matrix:
-        semver:
-          package-version: ''
-        rc:
-          package-version: 'rc'
-        latest:
-          package-version: 'latest'
-
-    steps:
-    - template: azure-pipelines.cd.deploy.yml
-
-  - job: deployDockerHub
-    displayName: Deploy - Docker Hub
-    pool:
-      vmImage: 'ubuntu-16.04'
-    variables:
-    - group: docker-registry-dockerhub
-    strategy:
-      matrix:
-        semver:
-          package-version: ''
-        rc:
-          package-version: 'rc'
-        latest:
-          package-version: 'latest'
-    dependsOn: deployLocalhost
-
-    steps:
-    - template: azure-pipelines.cd.deploy.yml
+  - template: build/azure-pipelines.deploy.yml
+    parameters:
+      configurations:
+        - os: linux
+          arch: amd64
+        - os: windows
+          arch: amd64
+      dockerRegistryServiceConnection: docker-registry-dockerio

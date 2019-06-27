@@ -3,7 +3,7 @@ service: docker
 component: hello-world
 
 machines:
-  build:
+  build-linux:
     box: <%= ENV['VAGRANT_BOX_DOCKER_LINUX'] || 'gusztavvargadr/docker-linux' %>
     providers:
       virtualbox:
@@ -29,3 +29,23 @@ machines:
           su -c "dotnet tool install Cake.Tool --global --version 0.33.0" vagrant
           apt-get --yes install libcurl3
           su -c "dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65" vagrant
+  build-windows:
+    box: <%= ENV['VAGRANT_BOX_DOCKER_WINDOWS'] || 'gusztavvargadr/docker-windows' %>
+    providers:
+      virtualbox:
+        memory: 1024
+        cpus: 1
+      hyperv:
+        memory: 1024
+        cpus: 1
+    provisioners:
+      shell-init-docker-compose:
+        inline: |
+          choco install docker-compose --version 1.24.0 --yes --no-progress
+      shell-init-dotnet-sdk:
+        inline: |
+          choco install dotnetcore-sdk --version 2.2.0 --yes --no-progress
+      shell-init-dotnet-tools:
+        inline: |
+          dotnet tool install Cake.Tool --global --version 0.33.0
+          dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
