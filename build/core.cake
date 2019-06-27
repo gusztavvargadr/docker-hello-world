@@ -1,6 +1,8 @@
-#addin "nuget:?package=Cake.Docker&version=0.10.0"
 #addin "nuget:?package=Cake.SemVer&version=3.0.0"
 #addin "nuget:?package=semver&version=2.0.4"
+#addin "nuget:?package=Cake.Docker&version=0.10.0"
+#addin "nuget:?package=Cake.Compression&version=0.2.3"
+#addin "nuget:?package=SharpZipLib&version=1.1.0"
 
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "linux-amd64");

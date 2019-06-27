@@ -24,7 +24,7 @@ jobs:
       displayName: Publish - Artifacts
       inputs:
         artifactName: ${{ configuration.os }}-${{ configuration.arch }}-image
-        targetPath: $(Build.ArtifactStagingDirectory)
+        targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}/image.tar.gz
 
     - script: |
         dotnet cake build.cake --target=clean --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory)

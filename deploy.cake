@@ -17,9 +17,11 @@ Versioned = () => {
 Restored = () => {
   EnsureDirectoryExists(workDirectory.Path + "/registry");
 
-  Environment.SetEnvironmentVariable("REGISTRY_VOLUME_PATH", workDirectory.Path + "/registry");
+  Environment.SetEnvironmentVariable("REGISTRY_VOLUME_PATH", MakeAbsolute(workDirectory) + "/registry");
 
-  var input = artifactsDirectory.Path + "/image.tar";
+  GZipUncompress(artifactsDirectory.Path + "/image.tar.gz", workDirectory);
+
+  var input = workDirectory.Path + "/image.tar";
   var loadSettings = new DockerImageLoadSettings {
     Input =input
   };
@@ -73,6 +75,7 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
+    GZipCompress(workDirectory.Path + "/registry", artifactsDirectory.Path + "/registry.tar.gz");
   });
 
 Cleaned = () => {

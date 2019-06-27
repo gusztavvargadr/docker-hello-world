@@ -35,9 +35,7 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    CopyFiles(workDirectory.Path + "/**/*.tar", artifactsDirectory);
-
-    Information($"Copied artifacts to '{artifactsDirectory}'.");
+    GZipCompress(workDirectory, artifactsDirectory.Path + "/image.tar.gz", GetFiles(workDirectory.Path + "/image.tar"));
   });
 
 RunTarget(target);
