@@ -28,7 +28,7 @@ jobs:
       displayName: Restore - Artifacts
       inputs:
         artifactName: ${{ configuration.os }}-${{ configuration.arch }}-image
-        targetPath: $(Build.ArtifactStagingDirectory)
+        targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}
 
     - script: |
         dotnet cake deploy.cake --target=publish --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
@@ -38,7 +38,7 @@ jobs:
       displayName: Publish - Artifacts
       inputs:
         artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry-$(environment-name)
-        targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}/registry.tar.gz.
+        targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}/registry.tar.gz
 
     - script: |
         dotnet cake deploy.cake --target=clean --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
@@ -78,7 +78,7 @@ jobs:
       displayName: Restore - Artifacts - ${{ configuration.os }}-${{ configuration.arch }}
       inputs:
         artifactName: ${{ configuration.os }}-${{ configuration.arch }}-registry-$(environment-name)
-        targetPath: $(Build.ArtifactStagingDirectory)
+        targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}
 
   - script: |
       ls -Ral $(Build.ArtifactStagingDirectory)
