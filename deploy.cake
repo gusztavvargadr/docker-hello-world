@@ -15,17 +15,24 @@ Versioned = () => {
 };
 
 Restored = () => {
-  EnsureDirectoryExists(workDirectory.Path + "/registry");
+  if (configuration != "manifest") {
+    GZipUncompress(artifactsDirectory.Path + "/image.tar.gz", workDirectory);
 
+    var input = workDirectory.Path + "/image.tar";
+    var loadSettings = new DockerImageLoadSettings {
+      Input =input
+    };
+    DockerLoad(loadSettings);
+  }
+
+  EnsureDirectoryExists(workDirectory.Path + "/registry");
   Environment.SetEnvironmentVariable("REGISTRY_VOLUME_PATH", MakeAbsolute(workDirectory) + "/registry");
 
-  GZipUncompress(artifactsDirectory.Path + "/image.tar.gz", workDirectory);
-
-  var input = workDirectory.Path + "/image.tar";
-  var loadSettings = new DockerImageLoadSettings {
-    Input =input
-  };
-  DockerLoad(loadSettings);
+  if (configuration == "manifest") {
+    foreach (var file in GetFiles(artifactsDirectory.Path + "/../**/registry.tar.gz")) {
+      GZipUncompress(file, workDirectory.Path + "/registry");
+    }
+  }
 
   var upSettings = new DockerComposeUpSettings {
     DetachedMode = true,
@@ -39,11 +46,26 @@ Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
     foreach (var tag in tags) {
-      DockerTag(GetBuildDockerImage(), GetDeployDockerImage(tag));
+      if (configuration != "manifest") {
+        DockerTag(GetBuildDockerImage(), GetDeployDockerImage(tag));
 
-      var pushSettings = new DockerImagePushSettings {
-      };
-      DockerPush(pushSettings, GetDeployDockerImage(tag));
+        var pushSettings = new DockerImagePushSettings {
+        };
+        DockerPush(pushSettings, GetDeployDockerImage(tag));
+      } else {
+        var createCommand = $"manifest create --insecure --amend {packageRegistry}{packageName}:{tag}";
+        foreach (var directory in GetDirectories(artifactsDirectory.Path + "/../*")) {
+          if (directory.GetDirectoryName() == "manifest") {
+            continue;
+          }
+
+          createCommand += $" {packageRegistry}{packageName}:{tag}-{directory.GetDirectoryName()}";
+        }
+        DockerCustomCommand(createCommand);
+
+        var pushCommand = $"manifest push --insecure {packageRegistry}{packageName}:{tag}";
+        DockerCustomCommand(pushCommand);
+      }
     }
   });
 
@@ -53,7 +75,11 @@ Task("Test")
     var service = "app";
 
     foreach (var tag in tags) {
-      Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}-{configuration}");
+      if (configuration != "manifest") {
+        Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}-{configuration}");
+      } else {
+        Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}");
+      }
 
       var pullSettings = new DockerComposePullSettings {
         WorkingDirectory = sourceDirectory
@@ -75,7 +101,9 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    GZipCompress(workDirectory.Path + "/registry", artifactsDirectory.Path + "/registry.tar.gz");
+    if (configuration != "manifest") {
+      GZipCompress(workDirectory.Path + "/registry", artifactsDirectory.Path + "/registry.tar.gz");
+    }
   });
 
 Cleaned = () => {

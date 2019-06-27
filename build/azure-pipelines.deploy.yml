@@ -81,5 +81,13 @@ jobs:
         targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}
 
   - script: |
-      ls -Ral $(Build.ArtifactStagingDirectory)
-    displayName: Diagnostics - Artifacts
+      dotnet cake deploy.cake --target=publish --configuration=manifest --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
+    displayName: Build - Publish
+
+  - ${{ if parameters.dockerRegistryServiceConnection }}:
+    - task: Docker@2
+      inputs:
+        command: logout
+        containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
+      displayName: Clean - Docker - Logout
+      condition: always()

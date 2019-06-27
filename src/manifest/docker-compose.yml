@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  registry:
+    build:
+      context: .
+      dockerfile: registry.Dockerfile
+    volumes:
+    - ${REGISTRY_VOLUME_PATH}:/var/lib/registry
+    ports:
+    - "5000:5000"
+  app:
+    image: ${APP_IMAGE_REGISTRY}${APP_IMAGE_REPOSITORY}:${APP_IMAGE_TAG}
