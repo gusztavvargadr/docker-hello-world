@@ -81,6 +81,7 @@ jobs:
         targetPath: $(Build.ArtifactStagingDirectory)/${{ configuration.os }}-${{ configuration.arch }}
 
   - script: |
+      export DOCKER_CLI_EXPERIMENTAL=enabled
       dotnet cake deploy.cake --target=publish --configuration=manifest --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
     displayName: Build - Publish
 
