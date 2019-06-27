@@ -4,7 +4,7 @@ Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
     var buildSettings = new DockerComposeBuildSettings {
-      WorkingDirectory = workDirectory
+      WorkingDirectory = sourceDirectory
     };
     var service = "app";
     DockerComposeBuild(buildSettings, service);
@@ -14,7 +14,7 @@ Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
     var runSettings = new DockerComposeRunSettings {
-      WorkingDirectory = workDirectory
+      WorkingDirectory = sourceDirectory
     };
     var service = "app";
     DockerComposeRun(runSettings, service);
@@ -23,7 +23,7 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    var output = workDirectory.Path + $"/{packageVersion}.tar";
+    var output = workDirectory.Path + "/image.tar";
     var saveSettings = new DockerImageSaveSettings {
       Output = output
     };

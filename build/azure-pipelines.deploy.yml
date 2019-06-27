@@ -31,7 +31,7 @@ jobs:
         targetPath: $(Build.ArtifactStagingDirectory)
 
     - script: |
-        dotnet cake deploy.cake --configuration=${{ configuration.os }}-${{ configuration.arch }} --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
+        dotnet cake deploy.cake --target=publish --configuration=${{ configuration.os }}-${{ configuration.arch }} --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(docker-registry-server)/
       displayName: Build - Publish
 
     - task: ArchiveFiles@2

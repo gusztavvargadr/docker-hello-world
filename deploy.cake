@@ -1,9 +1,25 @@
 #load "./build/core.cake"
 
+var tags = new List<string>();
+
+Versioned = () => {
+  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", packageRegistry);
+  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
+  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{packageVersion}-{configuration}");
+
+  tags.Add(packageVersion);
+  tags.Add("rc");
+  if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
+    tags.Add("latest");
+  }
+};
+
 Restored = () => {
   EnsureDirectoryExists(workDirectory.Path + "/registry");
 
-  var input = artifactsDirectory.Path + $"/{packageVersion}.tar";
+  Environment.SetEnvironmentVariable("REGISTRY_VOLUME_PATH", workDirectory.Path + "/registry");
+
+  var input = artifactsDirectory.Path + "/image.tar";
   var loadSettings = new DockerImageLoadSettings {
     Input =input
   };
@@ -11,7 +27,7 @@ Restored = () => {
 
   var upSettings = new DockerComposeUpSettings {
     DetachedMode = true,
-    WorkingDirectory = workDirectory
+    WorkingDirectory = sourceDirectory
   };
   var service = "registry";
   DockerComposeUp(upSettings, service);
@@ -20,10 +36,6 @@ Restored = () => {
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-      tags.Add($"latest-{configuration}");
-    }
-
     foreach (var tag in tags) {
       DockerTag(GetBuildDockerImage(), GetDeployDockerImage(tag));
 
@@ -39,15 +51,15 @@ Task("Test")
     var service = "app";
 
     foreach (var tag in tags) {
-      Environment.SetEnvironmentVariable("APP_IMAGE_TAG", tag);
+      Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}-{configuration}");
 
       var pullSettings = new DockerComposePullSettings {
-        WorkingDirectory = workDirectory
+        WorkingDirectory = sourceDirectory
       };
       DockerComposePull(pullSettings, service);
 
       var runSettings = new DockerComposeRunSettings {
-        WorkingDirectory = workDirectory
+        WorkingDirectory = sourceDirectory
       };
       DockerComposeRun(runSettings, service);
     }
@@ -69,7 +81,7 @@ Cleaned = () => {
   };
   DockerRemove(removeSettings, GetBuildDockerImage());
 
-  foreach (var tag in tags) {
+  foreach (var tag in tags.Skip(1)) {
     DockerRemove(removeSettings, GetDeployDockerImage(tag));
   }
 };

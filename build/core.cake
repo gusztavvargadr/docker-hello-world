@@ -5,21 +5,18 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "linux-amd64");
 
+var sourceDirectory = Directory($"{Argument("source-directory", "./src")}/{configuration}");
+var workDirectory = Directory($"{Argument("work-directory", "./work")}/{configuration}");
+var artifactsDirectory = Directory($"{Argument("artifacts-directory", "./artifacts")}/{configuration}");
+
 var sourceVersion = Argument("source-version", string.Empty);
 Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
 var appVersion = Argument("app-version", string.Empty);
 var packageVersion = Argument("package-version", string.Empty);
 
-var sourceDirectory = Directory(Argument("source-directory", "./src"));
-var workDirectory = Directory(Argument("work-directory", "./work"));
-var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
-
+var packageRegistry = Argument("package-registry", "localhost:5000/");
 var packageName = Argument("package-name", "gusztavvargadr/hello-world");
-var defaultPackageRegistry = "localhost:5000/";
-var packageRegistry = Argument("package-registry", defaultPackageRegistry);
-
-var tags = new List<string>();
 
 Task("Version")
   .Does(() => {
@@ -59,29 +56,20 @@ Func<string> GetBuildVersion = () => {
 };
 
 Func<string> GetAppVersion = () => {
-  return $"{sourceVersion}-{configuration}";
+  return sourceVersion;
 };
 
 Func<string> GetPackageVersion = () => {
   return GetAppVersion();
 };
 
-Action Versioned = () => {
-  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", packageRegistry);
-  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
-  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", packageVersion);
-
-  tags.Add(packageVersion);
-  tags.Add($"rc-{configuration}");
-};
+Action Versioned = () => {};
 
 Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
     EnsureDirectoryExists(workDirectory);
     EnsureDirectoryExists(artifactsDirectory);
-
-    CopyFiles(sourceDirectory.Path + $"/{configuration}/**/*.*", workDirectory);
 
     Restored();
   });
@@ -93,7 +81,7 @@ Task("Clean")
   .Does(() => {
     var downSettings = new DockerComposeDownSettings {
       Rmi = "all",
-      WorkingDirectory = workDirectory
+      WorkingDirectory = sourceDirectory
     };
     DockerComposeDown(downSettings);
 
@@ -105,9 +93,9 @@ Task("Clean")
 Action Cleaned = () => {};
 
 private string GetBuildDockerImage() {
-  return $"{defaultPackageRegistry}{packageName}:{packageVersion}";
+  return $"local/{packageName}:build-{configuration}";
 }
 
-private string GetDeployDockerImage(string tag) {
-  return $"{packageRegistry}{packageName}:{tag}";
+private string GetDeployDockerImage(string alias) {
+  return $"{packageRegistry}{packageName}:{alias}-{configuration}";
 }
