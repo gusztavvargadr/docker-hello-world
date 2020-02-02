@@ -2,8 +2,8 @@
 #   name: stage-name
 #   displayName: stage-display-name
 #   condition: stage-condition-expression
-#   samples:
-#     - name: [ sample-name-part-1, sample-name-part-2, ... ]
+#   configurations:
+#     - name: [ configuration-name-part-1, configuration-name-part-2, ... ]
 #   packageRegistry: package-registry-service-connection-name
 
 stages:
@@ -17,13 +17,15 @@ stages:
       - group: stage-${{ parameters.name }}
 
     jobs:
-      - ${{ each sample in parameters.samples }}:
-        - deployment: deploy_${{ join('_', sample.name) }}
-          displayName: Deploy ${{ join('-', sample.name) }}
+      - ${{ each configuration in parameters.configurations }}:
+        - deployment: deploy_${{ join('_', configuration.name) }}
+          displayName: Deploy ${{ join('-', configuration.name) }}
           environment: ${{ parameters.name }}
 
-          pool:
+          ${{ if not(eq(configuration.name[0], 'windows')) }}:
             vmImage: ubuntu-16.04
+          ${{ if eq(configuration.name[0], 'windows') }}:
+            vmImage: windows-2019
 
           workspace:
             clean: all
@@ -32,12 +34,12 @@ stages:
             runOnce:
               deploy:
                 steps:
-                  - template: ./sample.azure-pipelines.steps.initialize.yml
+                  - template: ./azure-pipelines.steps.initialize.yml
 
                   - task: DownloadPipelineArtifact@2
                     displayName: Download Registry Artifacts
                     inputs:
-                      artifact: build-${{ join('-', sample.name) }}-registry
+                      artifact: build-${{ join('-', configuration.name) }}-registry
                       path: $(Build.SourcesDirectory)/artifacts/registry/
 
                   - ${{ if parameters.packageRegistry }}:
@@ -48,17 +50,13 @@ stages:
                         containerRegistry: ${{ parameters.packageRegistry }}
 
                   - script: |
-                      dotnet cake deploy.cake --target=publish --sample-name=${{ join('-', sample.name) }} --package-registry=$(package-registry)
+                      dotnet cake deploy.cake --target=publish --configuration=${{ join('-', configuration.name) }} --package-registry=$(package-registry)
                     displayName: Publish Cake
-                    env:
-                      PACKET_AUTH_TOKEN: $(packet-auth-token)
 
                   - script: |
-                      dotnet cake deploy.cake --target=clean --sample-name=${{ join('-', sample.name) }} --package-registry=$(package-registry)
+                      dotnet cake deploy.cake --target=clean --configuration=${{ join('-', configuration.name) }} --package-registry=$(package-registry)
                     displayName: Clean Cake
                     condition: always()
-                    env:
-                      PACKET_AUTH_TOKEN: $(packet-auth-token)
 
                   - ${{ if parameters.packageRegistry }}:
                     - task: Docker@2
