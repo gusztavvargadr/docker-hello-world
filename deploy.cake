@@ -1,120 +1,92 @@
-#load "./build/core.cake"
+#load ./build/cake/core.cake
 
-var tags = new List<string>();
-
-Versioned = () => {
-  Environment.SetEnvironmentVariable("APP_IMAGE_REGISTRY", packageRegistry);
-  Environment.SetEnvironmentVariable("APP_IMAGE_REPOSITORY", packageName);
-  Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{packageVersion}-{configuration}");
-
-  tags.Add(packageVersion);
-  tags.Add("rc");
-  if (string.IsNullOrEmpty(sourceSemVer.Prerelease)) {
-    tags.Add("latest");
-  }
-};
-
-Restored = () => {
-  if (configuration != "manifest") {
-    GZipUncompress(artifactsDirectory.Path + "/image.tar.gz", workDirectory);
-
-    var input = workDirectory.Path + "/image.tar";
-    var loadSettings = new DockerImageLoadSettings {
-      Input =input
-    };
-    DockerLoad(loadSettings);
-  }
-
-  EnsureDirectoryExists(workDirectory.Path + "/registry");
-  Environment.SetEnvironmentVariable("REGISTRY_VOLUME_PATH", MakeAbsolute(workDirectory) + "/registry");
-
-  if (configuration == "manifest") {
-    foreach (var file in GetFiles(artifactsDirectory.Path + "/../**/registry.tar.gz")) {
-      GZipUncompress(file, workDirectory.Path + "/registry");
+Task("Restore")
+  .IsDependentOn("RestoreCore")
+  .Does(() => {
+    if (configuration != manifestConfiguration) {
+      var settings = new DockerImagePullSettings {
+      };
+      var imageReference = GetAppImageReference();
+      DockerPull(settings, imageReference);
     }
-  }
 
-  var upSettings = new DockerComposeUpSettings {
-    DetachedMode = true,
-    WorkingDirectory = sourceDirectory
-  };
-  var service = "registry";
-  DockerComposeUp(upSettings, service);
-};
+    if (packageRegistry == defaultDockerRegistry) {
+      var settings = new DockerComposeUpSettings {
+        DetachedMode = true
+      };
+      var services = new [] { "registry" };
+      DockerComposeUp(WithFiles(settings), services);
+    }
+  });
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    foreach (var tag in tags) {
-      if (configuration != "manifest") {
-        DockerTag(GetBuildDockerImage(), GetDeployDockerImage(tag));
-
-        var pushSettings = new DockerImagePushSettings {
-        };
-        DockerPush(pushSettings, GetDeployDockerImage(tag));
-      } else {
-        var createCommand = $"manifest create --insecure --amend {packageRegistry}{packageName}:{tag}";
-        foreach (var directory in GetDirectories(artifactsDirectory.Path + "/../*")) {
-          if (directory.GetDirectoryName() == "manifest") {
-            continue;
-          }
-
-          createCommand += $" {packageRegistry}{packageName}:{tag}-{directory.GetDirectoryName()}";
-        }
-        DockerCustomCommand(createCommand);
-
-        var pushCommand = $"manifest push --insecure {packageRegistry}{packageName}:{tag}";
-        DockerCustomCommand(pushCommand);
-      }
-    }
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var service = "app";
-
-    foreach (var tag in tags) {
-      if (configuration != "manifest") {
-        Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}-{configuration}");
-      } else {
-        Environment.SetEnvironmentVariable("APP_IMAGE_TAG", $"{tag}");
-      }
-
-      var pullSettings = new DockerComposePullSettings {
-        WorkingDirectory = sourceDirectory
+    if (configuration != manifestConfiguration) {
+      var settings = new DockerComposeRunSettings {
       };
-      DockerComposePull(pullSettings, service);
-
-      var runSettings = new DockerComposeRunSettings {
-        WorkingDirectory = sourceDirectory
-      };
-      DockerComposeRun(runSettings, service);
+      var service = "app";
+      DockerComposeRun(WithFiles(settings), service);
     }
   });
 
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
+    if (configuration != manifestConfiguration) {
+      var imageReference = GetAppImageReference();
+
+      var appImage = configuration != manifestConfiguration ?
+        $"{packageRegistry}hello-world:{packageVersion}-{configuration}" :
+        $"{packageRegistry}hello-world:{packageVersion}";
+      Environment.SetEnvironmentVariable("APP_IMAGE", appImage);
+      Information($"APP_IMAGE: '{appImage}'.");
+
+      var registryReference = GetAppImageReference();
+
+      Information($"Tagging '{imageReference}' as '{registryReference}'.");
+      DockerTag(imageReference, registryReference);
+    } else {
+      var appImage = configuration != manifestConfiguration ?
+        $"{packageRegistry}hello-world:{packageVersion}-{configuration}" :
+        $"{packageRegistry}hello-world:{packageVersion}";
+      Environment.SetEnvironmentVariable("APP_IMAGE", appImage);
+      Information($"APP_IMAGE: '{appImage}'.");
+
+      var settings = new DockerManifestCreateSettings() {
+        Insecure = true,
+        Amend = true
+      };
+      var manifestList = GetAppImageReference();
+      var manifestTags = new [] { "linux-amd64", "windows-amd64" };
+      foreach (var manifestTag in manifestTags) {
+        var manifest = $"{manifestList}-{manifestTag}";
+        DockerManifestCreate(settings, manifestList, manifest);
+      }
+    }
   });
 
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    if (configuration != "manifest") {
-      GZipCompress(workDirectory.Path + "/registry", artifactsDirectory.Path + "/registry.tar.gz");
+    if (configuration != manifestConfiguration) {
+      var settings = new DockerImagePushSettings {
+      };
+      var imageReference = GetAppImageReference();
+      DockerPush(settings, imageReference);
+    } else {
+      var settings = new DockerManifestPushSettings() {
+        Insecure = true,
+        Purge = true
+      };
+      var manifestList = GetAppImageReference();
+      DockerManifestPush(settings, manifestList);
     }
   });
-
-Cleaned = () => {
-  var removeSettings = new DockerImageRemoveSettings {
-    Force = true
-  };
-  DockerRemove(removeSettings, GetBuildDockerImage());
-
-  foreach (var tag in tags.Skip(1)) {
-    DockerRemove(removeSettings, GetDeployDockerImage(tag));
-  }
-};
 
 RunTarget(target);

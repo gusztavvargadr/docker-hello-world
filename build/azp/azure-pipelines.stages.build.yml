@@ -1,0 +1,49 @@
+# parameters:
+#   name: stage-name
+#   displayName: stage-display-name
+#   condition: stage-condition-expression
+#   configurations:
+#     - name: [ configuration-name-part-1, configuration-name-part-2, ... ]
+
+stages:
+  - stage: ${{ parameters.name }}
+    displayName: ${{ parameters.displayName }}
+    ${{ if parameters.condition }}:
+      condition: ${{ parameters.condition }}
+
+    variables:
+      - group: pipeline
+      - group: stage-${{ parameters.name }}
+
+    jobs:
+      - ${{ each configuration in parameters.configurations }}:
+        - job: build_${{ join('_', configuration.name) }}
+          displayName: Build ${{ join('-', configuration.name) }}
+
+          pool:
+            vmImage: ubuntu-16.04
+
+          workspace:
+            clean: all
+
+          steps:
+            - template: ./azure-pipelines.steps.initialize.yml
+
+            - script: |
+                dotnet cake build.cake --target=publish --configuration=${{ join('-', configuration.name) }}
+              displayName: Publish Cake
+
+            - script: |
+                dotnet cake build.cake --target=clean --configuration=${{ join('-', configuration.name) }}
+              displayName: Clean Cake
+              condition: always()
+
+            - script: |
+                sudo chmod -R o+rX ./artifacts/registry/
+              displayName: Prepare Registry Artifacts
+              condition: always()
+
+            - publish: $(Build.SourcesDirectory)/artifacts/registry/
+              displayName: Publish Registry Artifacts
+              condition: always()
+              artifact: build-${{ join('-', configuration.name) }}-registry

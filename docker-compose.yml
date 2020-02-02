@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  gitversion:
+    build:
+      context: ./build/docker/${DOCKER_PLATFORM}/
+      dockerfile: ./gitversion.Dockerfile
+
+    command: /showvariable SemVer
+
+  registry:
+    build:
+      context: ./build/docker/${DOCKER_PLATFORM}/
+      dockerfile: ./registry.Dockerfile
+
+    ports:
+      - '5000:5000'
+
+  app:
+    build:
+      context: ./src/${APP_CONFIGURATION}/
+      dockerfile: ./app.Dockerfile
+
+    image: ${APP_IMAGE}

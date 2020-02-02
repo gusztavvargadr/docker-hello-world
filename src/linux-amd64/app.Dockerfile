@@ -1,3 +1,3 @@
-FROM library/alpine:3.9.4
+FROM library/alpine:3.11.3
 
-CMD "echo" "Hello World!"
+CMD echo Hello World!
