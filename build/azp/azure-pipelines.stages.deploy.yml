@@ -21,6 +21,10 @@ stages:
         - deployment: deploy_${{ join('_', configuration.name) }}
           displayName: Deploy ${{ join('-', configuration.name) }}
           environment: ${{ parameters.name }}
+          ${{ if configuration.dependsOn }}:
+            dependsOn:
+              - ${{ each dependsOn in configuration.dependsOn }}:
+                - deploy_${{ join('_', dependsOn) }}
 
           pool:
             ${{ if not(eq(configuration.name[0], 'windows')) }}:

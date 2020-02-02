@@ -14,3 +14,6 @@ stages:
         - name: [ 'linux', 'amd64' ]
         - name: [ 'windows', 'amd64' ]
         - name: [ 'manifest' ]
+          dependsOn:
+            - [ 'linux', 'amd64' ]
+            - [ 'windows', 'amd64' ]

@@ -19,6 +19,10 @@ stages:
       - ${{ each configuration in parameters.configurations }}:
         - job: build_${{ join('_', configuration.name) }}
           displayName: Build ${{ join('-', configuration.name) }}
+          ${{ if configuration.dependsOn }}:
+            dependsOn:
+              - ${{ each dependsOn in configuration.dependsOn }}:
+                - build_${{ join('_', dependsOn) }}
 
           pool:
             ${{ if not(eq(configuration.name[0], 'windows')) }}:
@@ -43,10 +47,11 @@ stages:
               displayName: Clean Cake
               condition: always()
 
-            - script: |
-                sudo chmod -R o+rX ./artifacts/registry/
-              displayName: Prepare Registry Artifacts
-              condition: always()
+            - ${{ if not(eq(parameters.configuration.name[0], 'windows')) }}:
+              - script: |
+                  sudo chmod -R o+rX ./artifacts/registry/
+                displayName: Prepare Registry Artifacts
+                condition: always()
 
             - publish: $(Build.SourcesDirectory)/artifacts/registry/
               displayName: Publish Registry Artifacts
