@@ -47,7 +47,7 @@ stages:
               displayName: Clean Cake
               condition: always()
 
-            - ${{ if not(eq(parameters.configuration.name[0], 'windows')) }}:
+            - ${{ if not(eq(configuration.name[0], 'windows')) }}:
               - script: |
                   sudo chmod -R o+rX ./artifacts/registry/
                 displayName: Prepare Registry Artifacts
