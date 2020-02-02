@@ -53,9 +53,9 @@ stages:
 
                   - ${{ each dependsOn in configuration.dependsOn }}:
                     - task: DownloadPipelineArtifact@2
-                      displayName: Download Registry Artifacts ${{ join('-', configuration.dependsOn) }}
+                      displayName: Download Registry Artifacts ${{ join('-', dependsOn) }}
                       inputs:
-                        artifact: build-${{ join('-', configuration.dependsOn) }}-registry
+                        artifact: build-${{ join('-', dependsOn) }}-registry
                         path: $(Build.SourcesDirectory)/artifacts/registry/
 
                   - ${{ if parameters.packageRegistry }}:
