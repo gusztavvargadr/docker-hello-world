@@ -42,12 +42,21 @@ stages:
                   - template: ./azure-pipelines.steps.initialize.yml
                     parameters:
                       configuration: ${{ configuration }}
-    
+
+                  - download: none
+
                   - task: DownloadPipelineArtifact@2
-                    displayName: Download Registry Artifacts
+                    displayName: Download Registry Artifacts ${{ join('-', configuration.name) }}
                     inputs:
                       artifact: build-${{ join('-', configuration.name) }}-registry
                       path: $(Build.SourcesDirectory)/artifacts/registry/
+
+                  - ${{ each dependsOn in configuration.dependsOn }}:
+                    - task: DownloadPipelineArtifact@2
+                      displayName: Download Registry Artifacts ${{ join('-', configuration.dependsOn) }}
+                      inputs:
+                        artifact: build-${{ join('-', configuration.dependsOn) }}-registry
+                        path: $(Build.SourcesDirectory)/artifacts/registry/
 
                   - ${{ if parameters.packageRegistry }}:
                     - task: Docker@2
