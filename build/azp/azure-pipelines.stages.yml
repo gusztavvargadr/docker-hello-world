@@ -1,0 +1,32 @@
+# parameters:
+#   configurations: []
+#     - name: [ configuration-name-part-1, configuration-name-part-2, ... ]
+
+stages:
+  - template: ./azure-pipelines.stages.build.yml
+    parameters:
+      name: commit
+      displayName: Commit
+      configurations: ${{ parameters.configurations }}
+
+  - template: ./azure-pipelines.stages.deploy.yml
+    parameters:
+      name: acceptance
+      displayName: Acceptance
+      configurations: ${{ parameters.configurations }}
+
+  - template: ./azure-pipelines.stages.deploy.yml
+    parameters:
+      name: staging
+      displayName: Staging
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/tags/')))
+      configurations: ${{ parameters.configurations }}
+      packageRegistry: dockerhub-gusztavvargadr
+
+  - template: ./azure-pipelines.stages.deploy.yml
+    parameters:
+      name: production
+      displayName: Production
+      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      configurations: ${{ parameters.configurations }}
+      packageRegistry: dockerhub-gusztavvargadr

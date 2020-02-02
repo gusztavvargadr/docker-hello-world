@@ -1,41 +1,46 @@
-#load "./build/core.cake"
+#load ./build/cake/core.cake
+
+Task("Restore")
+  .IsDependentOn("RestoreCore")
+  .Does(() => {
+  });
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var buildSettings = new DockerComposeBuildSettings {
-      WorkingDirectory = sourceDirectory
-    };
-    var service = "app";
-    DockerComposeBuild(buildSettings, service);
+    if (configuration != manifestConfiguration) {
+      var settings = new DockerComposeBuildSettings {
+      };
+      var services = new [] { "app" };
+      DockerComposeBuild(WithFiles(settings), services);
+    }
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var runSettings = new DockerComposeRunSettings {
-      WorkingDirectory = sourceDirectory
-    };
-    var service = "app";
-    DockerComposeRun(runSettings, service);
+    if (configuration != manifestConfiguration) {
+      var settings = new DockerComposeRunSettings {
+      };
+      var service = "app";
+      DockerComposeRun(WithFiles(settings), service);
+    }
   });
 
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    var output = workDirectory.Path + "/image.tar";
-    var saveSettings = new DockerImageSaveSettings {
-      Output = output
-    };
-    DockerSave(saveSettings, GetBuildDockerImage());
-
-    Information($"Saved '{output}'.");
   });
 
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    GZipCompress(workDirectory, artifactsDirectory.Path + "/image.tar.gz", GetFiles(workDirectory.Path + "/image.tar"));
+    if (configuration != manifestConfiguration) {
+      var settings = new DockerImagePushSettings {
+      };
+      var imageReference = GetAppImageReference();
+      DockerPush(settings, imageReference);
+    }
   });
 
 RunTarget(target);

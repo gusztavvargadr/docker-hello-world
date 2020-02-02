@@ -1,50 +1,19 @@
 trigger:
-- master
-- feature/*
-- hotfix/*
-- refs/tags/*
-
+  branches:
+    include:
+      - '*'
+  tags:
+    include:
+      - '*'
 pr: none
 
 stages:
-- stage: build
-  displayName: Build
-
-  jobs:
-  - template: build/azure-pipelines.build.yml
+  - template: ./build/azp/azure-pipelines.stages.yml
     parameters:
       configurations:
-        - os: linux
-          arch: amd64
-        - os: windows
-          arch: amd64
-
-- stage: deployLocalhost
-  displayName: Deploy - localhost
-  variables:
-  - group: environment-localhost
-  
-  jobs:
-  - template: build/azure-pipelines.deploy.yml
-    parameters:
-      configurations:
-        - os: linux
-          arch: amd64
-        - os: windows
-          arch: amd64
-      dockerRegistryServiceConnection: ''
-
-- stage: deployDockerIo
-  displayName: Deploy - docker.io
-  variables:
-  - group: environment-dockerio
-
-  jobs:
-  - template: build/azure-pipelines.deploy.yml
-    parameters:
-      configurations:
-        - os: linux
-          arch: amd64
-        - os: windows
-          arch: amd64
-      dockerRegistryServiceConnection: docker-registry-dockerio
+        - name: [ 'linux', 'amd64' ]
+        - name: [ 'windows', 'amd64' ]
+        - name: [ 'manifest' ]
+          dependsOn:
+            - [ 'linux', 'amd64' ]
+            - [ 'windows', 'amd64' ]

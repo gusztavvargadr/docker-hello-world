@@ -1,0 +1,83 @@
+# parameters:
+#   name: stage-name
+#   displayName: stage-display-name
+#   condition: stage-condition-expression
+#   configurations:
+#     - name: [ configuration-name-part-1, configuration-name-part-2, ... ]
+#   packageRegistry: package-registry-service-connection-name
+
+stages:
+  - stage: ${{ parameters.name }}
+    displayName: ${{ parameters.displayName }}
+    ${{ if parameters.condition }}:
+      condition: ${{ parameters.condition }}
+
+    variables:
+      - group: pipeline
+      - group: stage-${{ parameters.name }}
+
+    jobs:
+      - ${{ each configuration in parameters.configurations }}:
+        - deployment: deploy_${{ join('_', configuration.name) }}
+          displayName: Deploy ${{ join('-', configuration.name) }}
+          environment: ${{ parameters.name }}
+          ${{ if configuration.dependsOn }}:
+            dependsOn:
+              - ${{ each dependsOn in configuration.dependsOn }}:
+                - deploy_${{ join('_', dependsOn) }}
+
+          pool:
+            ${{ if not(eq(configuration.name[0], 'windows')) }}:
+              vmImage: ubuntu-16.04
+            ${{ if eq(configuration.name[0], 'windows') }}:
+              vmImage: windows-2019
+
+          workspace:
+            clean: all
+
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - template: ./azure-pipelines.steps.initialize.yml
+                    parameters:
+                      configuration: ${{ configuration }}
+
+                  - download: none
+
+                  - task: DownloadPipelineArtifact@2
+                    displayName: Download Registry Artifacts ${{ join('-', configuration.name) }}
+                    inputs:
+                      artifact: build-${{ join('-', configuration.name) }}-registry
+                      path: $(Build.SourcesDirectory)/artifacts/registry/
+
+                  - ${{ each dependsOn in configuration.dependsOn }}:
+                    - task: DownloadPipelineArtifact@2
+                      displayName: Download Registry Artifacts ${{ join('-', dependsOn) }}
+                      inputs:
+                        artifact: build-${{ join('-', dependsOn) }}-registry
+                        path: $(Build.SourcesDirectory)/artifacts/registry/
+
+                  - ${{ if parameters.packageRegistry }}:
+                    - task: Docker@2
+                      displayName: Login Docker
+                      inputs:
+                        command: login
+                        containerRegistry: ${{ parameters.packageRegistry }}
+
+                  - script: |
+                      dotnet cake deploy.cake --target=publish --configuration=${{ join('-', configuration.name) }} --package-registry=$(package-registry)
+                    displayName: Publish Cake
+
+                  - script: |
+                      dotnet cake deploy.cake --target=clean --configuration=${{ join('-', configuration.name) }} --package-registry=$(package-registry)
+                    displayName: Clean Cake
+                    condition: always()
+
+                  - ${{ if parameters.packageRegistry }}:
+                    - task: Docker@2
+                      displayName: Logout Docker
+                      condition: always()
+                      inputs:
+                        command: logout
+                        containerRegistry: ${{ parameters.packageRegistry }}

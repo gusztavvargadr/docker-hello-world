@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  gitversion:
+    volumes:
+      - ${REPO_DIR}:C:/opt/gitversion/
+
+  registry:
+    volumes:
+      - ${REPO_DIR}artifacts/registry/data/:C:/registry/
