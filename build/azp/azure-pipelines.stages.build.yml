@@ -38,20 +38,20 @@ stages:
 
             - script: |
                 dotnet cake build.cake --target=publish --configuration=${{ join('-', configuration.name) }}
-              displayName: Publish Cake
+              displayName: Publish Build
 
             - script: |
                 dotnet cake build.cake --target=clean --configuration=${{ join('-', configuration.name) }}
-              displayName: Clean Cake
+              displayName: Clean Build
               condition: always()
 
             - ${{ if not(eq(configuration.name[0], 'windows')) }}:
               - script: |
                   sudo chmod -R o+rX ./artifacts/registry/
-                displayName: Prepare Registry Artifacts
+                displayName: Initialize Registry Artifact
                 condition: always()
 
             - publish: $(Build.SourcesDirectory)/artifacts/registry/
-              displayName: Publish Registry Artifacts
+              displayName: Publish Registry Artifact
               condition: always()
               artifact: build-${{ join('-', configuration.name) }}-registry

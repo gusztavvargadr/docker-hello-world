@@ -4,6 +4,8 @@ steps:
   - checkout: self
     submodules: recursive
 
+  - download: none
+
   - task: UseDotNet@2
     displayName: Initialize .NET CLI
     inputs:
