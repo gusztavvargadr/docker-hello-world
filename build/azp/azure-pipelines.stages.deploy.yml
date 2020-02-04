@@ -40,8 +40,6 @@ stages:
               deploy:
                 steps:
                   - template: ./azure-pipelines.steps.initialize.yml
-                    parameters:
-                      configuration: ${{ configuration }}
 
                   - download: none
 

@@ -1,19 +1,22 @@
 # parameters:
-#   configurations:
-#     name: [ configuration-name-part-1, configuration-name-part-2, ... ]
 
 steps:
   - checkout: self
     submodules: recursive
 
-  - ${{ if not(eq(parameters.configuration.name[0], 'windows')) }}:
-    - script: |
-        echo "##vso[task.setvariable variable=PATH;]$PATH:~/.dotnet/tools"
-      displayName: Initialize .NET Path
+  - task: UseDotNet@2
+    displayName: Initialize .NET - CLI
+    inputs:
+      version: '3.1.x'
+
+  - task: DotNetCoreCLI@2
+    displayName: Initialize .NET - Cake
+    inputs:
+      command: custom
+      custom: tool
+      arguments: install Cake.Tool --global --version 0.35.0
 
   - script: |
       dotnet --info
-
-      dotnet tool install Cake.Tool --global --version 0.35.0
       dotnet tool list --global
-    displayName: Initialize .NET Tools
+    displayName: Initialize .NET - Diagnostics

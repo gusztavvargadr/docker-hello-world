@@ -35,8 +35,6 @@ stages:
 
           steps:
             - template: ./azure-pipelines.steps.initialize.yml
-              parameters:
-                configuration: ${{ configuration }}
 
             - script: |
                 dotnet cake build.cake --target=publish --configuration=${{ join('-', configuration.name) }}
